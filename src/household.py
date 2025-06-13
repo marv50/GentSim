@@ -16,3 +16,9 @@ class Household(Agent):
         """
         #I cant afford? -> MOVE
         pass
+
+
+def move_out_medium():
+    p = 4 * (income_percentile - 0.5)**2
+    assert 0 <= p <= 1
+    return p
