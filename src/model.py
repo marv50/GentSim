@@ -43,6 +43,6 @@ class GentSimModel(Model):
         """
         Advance the model by one step.
         """
-        self.agents.shuffle_do()
+        self.agents.shuffle_do("step", self)
 
 gentsim = GentSimModel(10, 10, 0.5)
