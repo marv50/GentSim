@@ -16,6 +16,7 @@ class GentSimModel(Model):
         self.num_agents = N * n
         self.theta = theta
         self.neighbourhoods = np.array([[Neighbourhood(i, j) for i in range(N)] for j in range(N)], dtype=Neighbourhood)
+        self.empty_houses = [(0,0), (2,0)] # temp list of the empty houses
         self.init_population(N, n, 0.5)
 
     def init_population(self, N: int, n: int, p: float) -> None:
@@ -42,6 +43,6 @@ class GentSimModel(Model):
         """
         Advance the model by one step.
         """
-        self.agents.shuffle_do()
+        self.agents.shuffle_do("step", self)
 
 gentsim = GentSimModel(10, 10, 0.5)
