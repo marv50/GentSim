@@ -20,25 +20,43 @@ class Household(Agent):
         """
         We movin or not
         """
-        # I cant afford? -> MOVE
         if self.income_bin == "low":
-            ...  # :( Pooruhh
+            move_out_prob = move_out_low(model, self.income, *self.pos)
+            if model.random.random() < move_out_prob:
+                new_location = move_in(model, move_in_low, self.income, *self.pos)
+                if new_location:
+                    self.move(model, new_location)
+
         if self.income_bin == "medium":
             move_out_prob = move_out_medium(model, self.income, *self.pos)
             if model.random.random() < move_out_prob:
-                ...
+                new_location = move_in(model, move_in_medium, self.income, *self.pos)
+                if new_location:
+                    self.move(model, new_location)
+
         if self.income_bin == "high":
             if model.random.random() < self.ph:
-                self.move()
+                new_location = move_in(model, move_in_high, *self.pos)
+                if new_location:
+                    self.move(model, new_location)
 
-    def move(self) -> None: ...
+    def move(self, model, location):
+        """
+        Move the household to a new location.
+        """
+        model.empty_houses[self.pos] = True
+        model.empty_houses[location] = False
+        self.pos = location
+        model.grid.move_agent(self, location)
+
+        assert model.empty_houses[self.pos] is True, "Old position must be empty"
+        assert model.empty_houses[location] is False, "New position must not be empty"
 
 
 def income_percentile(model, income, x, y) -> float:
     """
     Calculate the income percentile of the household.
     """
-
     assert income > 0, "Income must be greater than 0"
     neighbours = model.grid.get_neighbors((x, y), True, False)
     total = sum([n.income for n in neighbours])
@@ -69,6 +87,25 @@ def move_out_medium(model, income, x, y):
     - float: The probability of moving out.
     """
     p = 4 * (income_percentile(model, income, x, y) - 0.5) ** 2
+    assert 0 <= p <= 1
+    return p
+
+
+def move_in_low(model, income, x, y) -> float:
+    """
+    Calculate the probability of moving in based on the income percentile.
+
+    ## Parameters
+    - model (Model): The model instance.
+    - income (float): The income of the household.
+    - x (int): The x-coordinate of the household.
+    - y (int): The y-coordinate of the household.
+
+    ## Returns
+    - float: The probability of moving in.
+    """
+    gamma = income_percentile(model, income, x, y)
+    p = np.sqrt(gamma)
     assert 0 <= p <= 1
     return p
 
@@ -134,9 +171,7 @@ def move_in(model, utility_func, *args, **kwargs):
     np.random.shuffle(items)  # Randomize order
     for (x, y), prob in items:
         if prob >= np.random.rand():
-            model.empty_houses.remove((x, y))
-            model.grid.place_agent(Household(model, (x, y)), (x, y))
-            return 1
+            return (x, y)
     return 0
 
 
