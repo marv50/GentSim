@@ -18,6 +18,8 @@ class GentSimModel(Model):
         self.neighbourhoods = np.array([[Neighbourhood(i, j) for i in range(N)] for j in range(N)], dtype=Neighbourhood)
         self.empty_houses = [(0,0), (2,0)] # temp list of the empty houses
         self.init_population(N, n, 0.5)
+        self.income_history = {}  # needed for high income households
+
 
     def init_population(self, N: int, n: int, p: float) -> None:
         """ 
