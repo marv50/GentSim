@@ -13,12 +13,14 @@ class GentSimModel(Model):
     def __init__(self, N: int, n: int, theta: float, epsilon: int, p_h: float) -> None:
         super().__init__()
         self.grid = SingleGrid(N*n, N*n, False)
-        self.num_agents = N * n
+        # self.num_agents = N * n
+        self.N = N
+        self.n = n
         self.theta = theta
         self.epsilon = epsilon
         self.p_h = p_h  # probability of high income households
         self.neighbourhoods = np.array([[Neighbourhood(i, j) for i in range(N)] for j in range(N)], dtype=Neighbourhood)
-        self.empty_houses = [(0,0), (2,0)] # temp list of the empty houses
+        self.empty_houses = np.zeros((N*n, N*n), dtype=bool)
         self.init_population(N, n, 0.5)
         self.income_history = {}  # needed for high income households
 
@@ -31,6 +33,8 @@ class GentSimModel(Model):
             for j in range(N*n):
                 if self.random.random() < p:
                     agent = self.new_agent((i, j), N)
+                    self.empty_houses[i, j] = False
+                
 
     def new_agent(self, pos, N) -> None:
         """
