@@ -55,12 +55,10 @@ def move_in(model, utility_func, *args, **kwargs):
     The utility is calculated as the inverse of the utility function.
     Where the utility function depends on the income level
     """
-    house_utilities = {}
-    for i in range(model.N * model.n):
-        for j in range(model.N * model.n):
-            if model.empty_houses[i, j]:
-                house_utilities.update((i,j), utility_func(model, *args, x=i, y=j, **kwargs))
-
+    empty_indices = np.argwhere(model.empty_houses)
+    house_utilities = {
+            (x, y): utility_func(model, *args, x=x, y=y, **kwargs) for (x,y) in empty_indices
+    }
     total_sum = sum(house_utilities.values())
     rho = np.max([
         value / (total_sum - value) if (total_sum - value) != 0 else 0
