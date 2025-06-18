@@ -14,7 +14,7 @@ class Household(Agent):
         self.income = 1  # Pooruhh
         self.income_bin = get_income_bin(self.income)
         self.pos = pos
-        self.ph
+        # self.ph
 
     def step(self, model: Model) -> None:
         """

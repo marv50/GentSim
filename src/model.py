@@ -46,7 +46,7 @@ class GentSimModel(Model):
         neighbourhood.residents += 1
         neighbourhood.total_income += household.income
 
-        return self.grid.place_agent(household, pos)
+        return household
 
     def step(self):
         """
@@ -54,5 +54,13 @@ class GentSimModel(Model):
         """
         self.agents.shuffle_do("step", self)
 
+gentsim = GentSimModel(10, 10, 0.5, 1, 0.5)
+for _ in range(10):  # Run for 10 steps
+    gentsim.step()
 
-gentsim = GentSimModel(10, 10, 0.5)
+
+# print results
+for neighbourhood in gentsim.neighbourhoods.flatten():
+    print(f"Neighbourhood ({neighbourhood.x}, {neighbourhood.y}): "
+          f"{neighbourhood.residents} residents, "
+          f"Total Income: {neighbourhood.total_income}")
