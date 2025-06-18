@@ -7,8 +7,8 @@ class Household(Agent):
     """
     A household agent in the GentSim model.
     """
-    def __init__(self, model: Model, pos: tuple) -> None:
-        super().__init__(model)
+    def __init__(self, unique_id, model: Model, pos: tuple) -> None:
+        super().__init__(unique_id, model)
         self.income = 1  # Pooruhh
         self.pos = pos
 

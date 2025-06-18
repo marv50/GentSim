@@ -36,16 +36,16 @@ class GentSimModel(Model):
                     self.empty_houses[i, j] = False
                 
 
-    def new_agent(self, pos, N) -> None:
-        """
-        Create a new agent at the specified position.
-        """
-        household = Household(self, pos)
-        neighbourhood = self.neighbourhoods[pos[0]//N, pos[1]//N]
+    def new_agent(self, pos, N):
+        unique_id = self.next_id()
+        household = Household(unique_id, self, pos)
+        neighbourhood = self.neighbourhoods[pos[0] // N, pos[1] // N]
         neighbourhood.residents += 1
         neighbourhood.total_income += household.income
 
-        return self.grid.place_agent(household, pos)
+        self.grid.place_agent(household, pos)
+        return household
+
 
     def step(self):
         """
@@ -53,4 +53,4 @@ class GentSimModel(Model):
         """
         self.agents.shuffle_do("step", self)
 
-gentsim = GentSimModel(10, 10, 0.5)
+# gentsim = GentSimModel(10, 10, 0.5)
