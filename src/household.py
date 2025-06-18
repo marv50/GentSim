@@ -51,23 +51,17 @@ def move_in_medium(model, income, x, y) -> float:
     return p
 
 
-def move_out_high(p_h):
-    """
-    Define the probability of moving out based on fixed p_h.
-    """
-    return p_h
-
-
-def move_in_high(model, x, y, epsilon) -> float:
+def move_in_high(model, x, y) -> float:
     """
     Compute average income growth rate phi^epsilon(t) for a cell, required for h 
     to move in somewhere else.
     """
     history = model.income_history[(x, y)]
-    if len(history) < epsilon + 1:
+    if len(history) < model.epsilon + 1:
         return 0.0
-    diffs = [history[-(i + 1)] - history[-(i + 2)] for i in range(epsilon)]
-    return sum(diffs) / epsilon
+    diffs = [history[-(i + 1)] - history[-(i + 2)]
+             for i in range(model.epsilon)]
+    return sum(diffs) / model.epsilon
 
 
 def move_in(model, utility_func, *args, **kwargs):
