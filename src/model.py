@@ -23,8 +23,8 @@ class GentSimModel(Model):
             [[Neighbourhood(i, j) for i in range(N)] for j in range(N)],
             dtype=Neighbourhood,
         )
-        self.empty_houses = np.zeros((N * n, N * n), dtype=bool)
-        self.init_population(N, n, 0.5)
+        self.empty_houses = np.ones((N * n, N * n), dtype=bool)
+        self.init_population(N, n, 0.01)
         self.income_history = {}  # needed for high income households
 
     def init_population(self, N: int, n: int, p: float) -> None:
@@ -55,12 +55,27 @@ class GentSimModel(Model):
         self.agents.shuffle_do("step", self)
 
 gentsim = GentSimModel(10, 10, 0.5, 1, 0.5)
+occupied_count = np.sum(~gentsim.empty_houses)
+print(f"Total occupied houses: {occupied_count}")
 for _ in range(10):  # Run for 10 steps
+    
     gentsim.step()
+    occupied_count = np.sum(~gentsim.empty_houses)
+    print(f"Total occupied houses: {occupied_count}")
 
 
 # print results
-for neighbourhood in gentsim.neighbourhoods.flatten():
-    print(f"Neighbourhood ({neighbourhood.x}, {neighbourhood.y}): "
-          f"{neighbourhood.residents} residents, "
-          f"Total Income: {neighbourhood.total_income}")
+# for neighbourhood in gentsim.neighbourhoods.flatten():
+#     print(f"Neighbourhood ({neighbourhood.x}, {neighbourhood.y}): "
+#           f"{neighbourhood.residents} residents, "
+#           f"Total Income: {neighbourhood.total_income}")
+# for i in range(gentsim.N * gentsim.n):
+#     for j in range(gentsim.N * gentsim.n):
+#         if not gentsim.empty_houses[i, j]:
+#             print(f"House at ({i}, {j}) is occupied.")
+#         else:
+#             print(f"House at ({i}, {j}) is empty.")
+
+# Count occupied houses
+occupied_count = np.sum(~gentsim.empty_houses)
+print(f"Total occupied houses: {occupied_count}")
