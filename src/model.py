@@ -64,18 +64,6 @@ for _ in range(10):  # Run for 10 steps
     print(f"Total occupied houses: {occupied_count}")
 
 
-# print results
-# for neighbourhood in gentsim.neighbourhoods.flatten():
-#     print(f"Neighbourhood ({neighbourhood.x}, {neighbourhood.y}): "
-#           f"{neighbourhood.residents} residents, "
-#           f"Total Income: {neighbourhood.total_income}")
-# for i in range(gentsim.N * gentsim.n):
-#     for j in range(gentsim.N * gentsim.n):
-#         if not gentsim.empty_houses[i, j]:
-#             print(f"House at ({i}, {j}) is occupied.")
-#         else:
-#             print(f"House at ({i}, {j}) is empty.")
-
 # Count occupied houses
 occupied_count = np.sum(~gentsim.empty_houses)
 print(f"Total occupied houses: {occupied_count}")
