@@ -1,7 +1,5 @@
-from mesa import Agent
-from mesa import Model
-from typing import Tuple
 import numpy as np
+from mesa import Agent, Model
 
 
 class Household(Agent):
@@ -9,11 +7,11 @@ class Household(Agent):
     A household agent in the GentSim model.
     """
 
-    def __init__(self, model: Model, pos: tuple) -> None:
+    def __init__(self, model: Model, income: int) -> None:
         super().__init__(model)
-        self.income = 1  # Pooruhh
-        self.income_bin = get_income_bin(self.income)
-        self.pos = pos
+        self.income = income
+        self.income_bin = get_income_bin(income)
+        # self.pos = pos
         # self.ph
 
     def step(self, model: Model) -> None:
@@ -21,24 +19,35 @@ class Household(Agent):
         We movin or not
         """
         if self.income_bin == "low":
-            move_out_prob = move_out_low(model, self.income, *self.pos)
+            move_out_prob = move_out_low(model, self.income, self.pos)
             if model.random.random() < move_out_prob:
-                new_location = move_in(model, move_in_low, self.income, *self.pos)
+                new_location = move_in(
+                    model,
+                    utility_func=move_in_low,
+                    income=self.income,
+                )
                 if new_location:
                     self.move(model, new_location)
 
         if self.income_bin == "medium":
-            move_out_prob = move_out_medium(model, self.income, *self.pos)
+            move_out_prob = move_out_medium(model, self.income, self.pos)
             if model.random.random() < move_out_prob:
-                new_location = move_in(model, move_in_medium, self.income, *self.pos)
+                new_location = move_in(
+                    model,
+                    utility_func=move_in_medium,
+                    income=self.income,
+                )
                 if new_location:
                     self.move(model, new_location)
 
-        if self.income_bin == "high":
-            if model.random.random() < self.ph:
-                new_location = move_in(model, move_in_high, *self.pos)
-                if new_location:
-                    self.move(model, new_location)
+        # if self.income_bin == "high":
+        #     if model.random.random() < model.p_h:
+        #         new_location = move_in(
+        #             model,
+        #             utility_func=move_in_high,
+        #         )
+        #         if new_location:
+        #             self.move(model, new_location)
 
     def move(self, model, location):
         """
@@ -46,144 +55,104 @@ class Household(Agent):
         """
         model.empty_houses[self.pos] = True
         model.empty_houses[location] = False
-        self.pos = location
+
+        assert bool(model.empty_houses[self.pos]) is True, "Old position must be empty"
+        assert bool(model.empty_houses[location]) is False, (
+            "New position must not be empty"
+        )
+
         model.grid.move_agent(self, location)
 
-        assert model.empty_houses[self.pos] is True, "Old position must be empty"
-        assert model.empty_houses[location] is False, "New position must not be empty"
 
-
-def income_percentile(model, income, x, y) -> float:
+def income_percentile(model, income, pos) -> float:
     """
     Calculate the income percentile of the household.
     """
     assert income > 0, "Income must be greater than 0"
-    neighbours = model.grid.get_neighbors((x, y), True, False)
+    neighbours = model.grid.get_neighbors(pos, True, False)
     total = sum([n.income for n in neighbours])
     return income / (total + income)
 
 
-def move_out_low(model, income, x, y) -> float:
+def move_out_low(model, income, pos) -> float:
     """
     Calculate the probability of moving out based on the income percentile.
     """
-    gamma = income_percentile(model, income, x, y)
+    gamma = income_percentile(model, income, pos)
     p = 1 - np.sqrt(gamma)
     assert 0 <= p <= 1
     return p
 
 
-def move_out_medium(model, income, x, y):
+def move_out_medium(model, income, pos):
     """
     Calculate the probability of moving out based on the income percentile.
-
-    ## Parameters
-    - model (Model): The model instance.
-    - income (float): The income of the household.
-    - x (int): The x-coordinate of the household.
-    - y (int): The y-coordinate of the household.
-
-    ## Returns
-    - float: The probability of moving out.
     """
-    p = 4 * (income_percentile(model, income, x, y) - 0.5) ** 2
+    p = 4 * (income_percentile(model, income, pos) - 0.5) ** 2
     assert 0 <= p <= 1
     return p
 
 
-def move_in_low(model, income, x, y) -> float:
+def move_in_low(model, income, pos) -> float:
     """
     Calculate the probability of moving in based on the income percentile.
-
-    ## Parameters
-    - model (Model): The model instance.
-    - income (float): The income of the household.
-    - x (int): The x-coordinate of the household.
-    - y (int): The y-coordinate of the household.
-
-    ## Returns
-    - float: The probability of moving in.
     """
-    gamma = income_percentile(model, income, x, y)
+    gamma = income_percentile(model, income, pos)
     p = np.sqrt(gamma)
     assert 0 <= p <= 1
     return p
 
 
-def move_in_medium(model, income, x, y) -> float:
+def move_in_medium(model, income, pos) -> float:
     """
     Calculate the probability of moving in based on the income percentile.
-
-    ## Parameters
-    - model (Model): The model instance.
-    - income (float): The income of the household.
-    - x (int): The x-coordinate of the household.
-    - y (int): The y-coordinate of the household.
-
-    ## Returns
-    - float: The probability of moving in.
     """
-    p = 1 - move_out_medium(model, income, x, y)
+    p = 1 - move_out_medium(model, income, pos)
     assert 0 <= p <= 1
     return p
 
 
-def move_in_high(model, x, y) -> float:
+def move_in_high(model, pos) -> float:
     """
     Compute average income growth rate phi^epsilon(t) for a cell, required for h
     to move in somewhere else.
     """
-    history = model.income_history[(x, y)]
+    history = model.income_history[pos]
     if len(history) < model.epsilon + 1:
         return 0.0
     diffs = [history[-(i + 1)] - history[-(i + 2)] for i in range(model.epsilon)]
     return sum(diffs) / model.epsilon
 
 
-def move_in(model, utility_func, *args, **kwargs):
+def move_in(model, utility_func, **kwargs) -> tuple:
     """
     Calculate the utility of moving into a house.
     The utility is calculated as the inverse of the utility function.
     Where the utility function depends on the income level
-
-    ## Parameters
-    - model (Model): The model instance.
-    - utility_func (function): The utility function to use for calculating the utility.
-    - args: Additional arguments to pass to the utility function.
-    - kwargs: Additional keyword arguments to pass to the utility function.
-
-    ## Returns
-    - float: The maximum rho value for the empty houses in the model.
     """
-
     empty_indices = np.argwhere(model.empty_houses)
+
     house_utilities = {
-        (x, y): utility_func(model, *args, x=x, y=y, **kwargs)
-        for (x, y) in empty_indices
+        tuple(idx): utility_func(model, **kwargs, pos=tuple(idx))
+        for idx in empty_indices
     }
     total_sum = sum(house_utilities.values())
     houses_probs = {
-        (x, y): value / (total_sum) if (total_sum - value) != 0 else 0
-        for (x, y), value in house_utilities.items()
+        new_pos: value / (total_sum) if (total_sum - value) != 0 else 0
+        for new_pos, value in house_utilities.items()
     }
 
     items = list(houses_probs.items())
     np.random.shuffle(items)  # Randomize order
-    for (x, y), prob in items:
+    for new_pos, prob in items:
         if prob >= np.random.rand():
-            return (x, y)
-    return 0
+            return new_pos
+    return None
 
 
 def get_income_bin(income: float) -> int:
     """
     Get the income bin for the given income.
-
-    ## Parameters
-    - income (float): The income of the household.
-
-    ## Returns
-    - int: The income bin.
     """
     if income < 38690:
         return "low"
