@@ -1,7 +1,7 @@
 from mesa import Model
 from mesa.space import SingleGrid
-from src.household import Household
-from src.neighbourhood import Neighbourhood
+from household import Household
+from neighbourhood import Neighbourhood
 import numpy as np
 
 
@@ -54,16 +54,17 @@ class GentSimModel(Model):
         """
         self.agents.shuffle_do("step", self)
 
-gentsim = GentSimModel(10, 10, 0.5, 1, 0.5)
-occupied_count = np.sum(~gentsim.empty_houses)
-print(f"Total occupied houses: {occupied_count}")
-for _ in range(10):  # Run for 10 steps
-    
-    gentsim.step()
+if __name__ == "__main__":
+    gentsim = GentSimModel(10, 10, 0.5, 1, 0.5)
     occupied_count = np.sum(~gentsim.empty_houses)
     print(f"Total occupied houses: {occupied_count}")
+    for _ in range(10):  # Run for 10 steps
+        
+        gentsim.step()
+        occupied_count = np.sum(~gentsim.empty_houses)
+        print(f"Total occupied houses: {occupied_count}")
 
 
-# Count occupied houses
-occupied_count = np.sum(~gentsim.empty_houses)
-print(f"Total occupied houses: {occupied_count}")
+    # Count occupied houses
+    occupied_count = np.sum(~gentsim.empty_houses)
+    print(f"Total occupied houses: {occupied_count}")
