@@ -3,18 +3,11 @@ from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
-<<<<<<< HEAD
 # from household import Household
 # from neighbourhood import Neighbourhood
 from scripts.income_distribution import create_income_distribution, load_distribution
 from src.household import Household
 from src.neighbourhood import Neighbourhood
-=======
-from household import Household
-from neighbourhood import Neighbourhood
-# from src.household import Household
-# from src.neighbourhood import Neighbourhood
->>>>>>> origin/marv1
 
 
 class GentSimModel(Model):
@@ -64,9 +57,13 @@ class GentSimModel(Model):
             self.N_neighbourhoods * self.N_houses,
             False,
         )
-        assert self.N_agents <= self.N_neighbourhoods * self.N_neighbourhoods * self.N_houses * self.N_houses, (
-            "Number of agents cannot exceed grid size"
-        )
+        assert (
+            self.N_agents
+            <= self.N_neighbourhoods
+            * self.N_neighbourhoods
+            * self.N_houses
+            * self.N_houses
+        ), "Number of agents cannot exceed grid size"
 
         self.empty_houses = np.ones(
             (
