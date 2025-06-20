@@ -3,8 +3,9 @@ from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
-from household import Household
-from neighbourhood import Neighbourhood
+# from household import Household
+# from neighbourhood import Neighbourhood
+from scripts.income_distribution import create_income_distribution, load_distribution
 from src.household import Household
 from src.neighbourhood import Neighbourhood
 
@@ -22,7 +23,6 @@ class GentSimModel(Model):
         theta: float,
         epsilon: int,
         p_h: float,
-        max_income: int = 100_000,
     ) -> None:
         super().__init__()
 
@@ -34,7 +34,11 @@ class GentSimModel(Model):
         self.theta = theta
         self.epsilon = epsilon
         self.p_h = p_h
-        self.max_income = max_income
+        income_distribution = create_income_distribution(
+            load_distribution("data/income_data.csv")
+        )
+        self.income_samples = list(income_distribution.rvs(size=N_agents))
+        np.random.shuffle(self.income_samples)
         self.init_population(N_agents)
 
         self.init_datacollector()
@@ -96,7 +100,7 @@ class GentSimModel(Model):
             pos = tuple(empty_houses[sample_pos])
             assert isinstance(pos, tuple), "Position must be a tuple"
 
-            agent = Household(self, self.random.randint(1, self.max_income))
+            agent = Household(self, income=self.income_samples.pop(0))
             self.grid.place_agent(agent, pos)
             self.empty_houses[pos] = False  # Mark the house as occupied
 
@@ -146,20 +150,3 @@ class GentSimModel(Model):
         self.agents.shuffle_do("step", self)
         self.save_grid_snapshot()
         self.datacollector.collect(self)
-
-
-if __name__ == "__main__":
-    gentsim = GentSimModel(10, 10, 10, 0.5, 1, 0.5)
-    occupied_count = np.sum(~gentsim.empty_houses)
-    print(f"Total occupied houses: {occupied_count}")
-    for _ in range(10):  # Run for 10 steps
-        gentsim.step()
-        occupied_count = np.sum(~gentsim.empty_houses)
-        print(f"Total occupied houses: {occupied_count}")
-
-    # Count occupied houses
-    occupied_count = np.sum(~gentsim.empty_houses)
-    print(f"Total occupied houses: {occupied_count}")
-
-    agent_df = gentsim.datacollector.get_agent_vars_dataframe()
-    print(agent_df.head(100))
