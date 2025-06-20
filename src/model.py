@@ -16,12 +16,12 @@ class GentSimModel(Model):
 
     def __init__(
         self,
-        N_agents: int,
-        N_neighbourhoods: int,
-        N_houses: int,
-        theta: float,
-        epsilon: int,
-        p_h: float,
+        N_agents:int=10,
+        N_neighbourhoods:int=5,
+        N_houses:int=5,
+        theta:float=0.5,
+        epsilon:int=1,
+        p_h:int=0.5,
         max_income: int = 100_000,
     ) -> None:
         super().__init__()
