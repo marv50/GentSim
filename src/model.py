@@ -110,8 +110,6 @@ class GentSimModel(Model):
         neighbourhood.total_income += household.income
         self.agent_lst.append(household)  # track the agent
 
-        self.agent_lst.append(household)
-
         return household
 
     def get_current_income_grid(self) -> np.ndarray:
