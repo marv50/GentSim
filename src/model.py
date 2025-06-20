@@ -5,8 +5,8 @@ from mesa.space import SingleGrid
 
 from household import Household
 from neighbourhood import Neighbourhood
-from src.household import Household
-from src.neighbourhood import Neighbourhood
+# from src.household import Household
+# from src.neighbourhood import Neighbourhood
 
 
 class GentSimModel(Model):
