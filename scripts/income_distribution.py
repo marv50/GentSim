@@ -46,7 +46,7 @@ def plot_income_distribution(
     ylabel: str = "Frequency",
     bins: int = 50,
     save=True,
-    save_path: str = "figures/income_distribution.png",
+    save_path: str = "fig/income_distribution.png",
 ):
     """
     Plot the income distribution.
