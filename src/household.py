@@ -116,30 +116,38 @@ def move_in_high(model, pos) -> float:
     Compute average income growth rate phi^epsilon(t) for a cell, required for high
     income households to move in somewhere else.
     """
-    x, y = pos
     if len(model.grid_history) < model.epsilon + 1:
         return 0.0
 
-    # Get the last epsilon + 1 grid snapshots to calculate epsilon differences
     recent_grids = model.grid_history[-(model.epsilon + 1) :]
 
-    # Calculate median income for the Moore neighborhood in each time period
+    neighbor_positions = model.grid.get_neighborhood(pos, moore=True, include_center=False, radius=2)
+
     medians = []
     for grid_snapshot in recent_grids:
-        # Get Moore neighborhood coordinates (including center)
         neighbor_incomes = []
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < model.grid.width and 0 <= ny < model.grid.height:
-                    income = grid_snapshot[nx, ny]
-                    if income > 0:  # Only include occupied cells
-                        neighbor_incomes.append(income)
+        for neighbor_pos in neighbor_positions:
+            x, y = neighbor_pos
+            income = grid_snapshot[x, y]
+            if income > 0:  # Only include occupied cells
+                neighbor_incomes.append(income)
 
         if neighbor_incomes:
             medians.append(np.median(neighbor_incomes))
         else:
             medians.append(0.0)
+
+    # Calculate the sum of differences over epsilon periods
+    if len(medians) < model.epsilon + 1:
+        return 0.0
+
+    # Calculate differences: [t-(epsilon-1)] - [t-epsilon], [t-(epsilon-2)] - [t-(epsilon-1)], ..., [t] - [t-1]
+    diffs = []
+    for i in range(model.epsilon):
+        diff = medians[i + 1] - medians[i]  # newer - older
+        diffs.append(diff)
+
+    return sum(diffs) / model.epsilon
 
     # Calculate the sum of differences over epsilon periods
     # medians[0] is oldest, medians[-1] is most recent
