@@ -1,9 +1,12 @@
+import numpy as np
 from mesa import Model
-from mesa.space import SingleGrid
 from mesa.datacollection import DataCollector
+from mesa.space import SingleGrid
+
+from household import Household
+from neighbourhood import Neighbourhood
 from src.household import Household
 from src.neighbourhood import Neighbourhood
-import numpy as np
 
 
 class GentSimModel(Model):
@@ -11,42 +14,91 @@ class GentSimModel(Model):
     A model for simulating the GentSim environment.
     """
 
-    def __init__(self, N: int, n: int, theta: float, epsilon: int, p_h: float) -> None:
+    def __init__(
+        self,
+        N_agents: int,
+        N_neighbourhoods: int,
+        N_houses: int,
+        theta: float,
+        epsilon: int,
+        p_h: float,
+        max_income: int = 100_000,
+    ) -> None:
         super().__init__()
-        self.grid = SingleGrid(N * n, N * n, False)
-        # self.num_agents = N * n
-        self.N = N
-        self.n = n
+
+        self.N_neighbourhoods = N_neighbourhoods
+        self.N_houses = N_houses
+        self.N_agents = N_agents
+        self.init_grid()
+
         self.theta = theta
         self.epsilon = epsilon
-        self.p_h = p_h  # probability of high income households
+        self.p_h = p_h
+        self.max_income = max_income
+        self.init_population(N_agents)
+
+        self.init_datacollector()
+
+    def init_grid(self) -> None:
+        """
+        Initialize the grid for the model.
+        """
+        assert self.N_neighbourhoods > 0, (
+            "Number of neighbourhoods must be greater than 0"
+        )
+        assert self.N_houses > 0, "Number of houses must be greater than 0"
+
+        self.grid = SingleGrid(
+            self.N_neighbourhoods * self.N_houses,
+            self.N_neighbourhoods * self.N_houses,
+            False,
+        )
+        assert self.N_agents <= self.N_neighbourhoods * self.N_houses, (
+            "Number of agents cannot exceed grid size"
+        )
+
+        self.empty_houses = np.ones(
+            (
+                self.N_neighbourhoods * self.N_houses,
+                self.N_neighbourhoods * self.N_houses,
+            ),
+            dtype=bool,
+        )
+
         self.neighbourhoods = np.array(
-            [[Neighbourhood(i, j) for i in range(N)] for j in range(N)],
+            [
+                [Neighbourhood(i, j) for i in range(self.N_neighbourhoods)]
+                for j in range(self.N_neighbourhoods)
+            ],
             dtype=Neighbourhood,
         )
 
+    def init_datacollector(self) -> None:
+        """
+        Initialize the DataCollector for the model.
+        """
         self.datacollector = DataCollector(
-            agent_reporters={
-                "income": lambda a: a.income,
-                "pos": lambda a: a.pos
-            }
+            agent_reporters={"income": lambda a: a.income, "pos": lambda a: a.pos}
         )
-
-        self.agent_lst = []  # list to hold all created agents
+        self.agent_lst = []
         self.grid_history = []
 
-        self.empty_houses = np.ones((N * n, N * n), dtype=bool)
-        self.init_population(N, n, 0.01)
-
-    def init_population(self, N: int, n: int, p: float) -> None:
+    def init_population(self, N_agents: int) -> None:
         """
         Initialize the population of agents in the model.
         """
-        for i in range(N * n):
-            for j in range(N * n):
-                if self.random.random() < p:
-                    agent = self.new_agent((i, j), N)
-                    self.empty_houses[i, j] = False
+        for _ in range(N_agents):
+            empty_houses = np.argwhere(self.empty_houses)
+            if empty_houses.size == 0:
+                return  # No empty houses left
+
+            sample_pos = np.random.choice(empty_houses.shape[0])
+            pos = tuple(empty_houses[sample_pos])
+            assert isinstance(pos, tuple), "Position must be a tuple"
+
+            agent = Household(self, self.random.randint(1, self.max_income))
+            self.grid.place_agent(agent, pos)
+            self.empty_houses[pos] = False  # Mark the house as occupied
 
     def new_agent(self, pos, N) -> None:
         """
@@ -58,15 +110,13 @@ class GentSimModel(Model):
         neighbourhood.total_income += household.income
         self.agent_lst.append(household)  # track the agent
 
+        self.agent_lst.append(household)
+
         return household
 
     def get_current_income_grid(self) -> np.ndarray:
         """
         Create a snapshot of the current income distribution on the grid.
-
-        Returns:
-        - np.ndarray: 2D array where each cell contains the income of the agent at that position,
-                      or 0 if the cell is empty.
         """
         income_grid = np.zeros((self.grid.width, self.grid.height))
 
@@ -98,21 +148,18 @@ class GentSimModel(Model):
         self.datacollector.collect(self)
 
 
+if __name__ == "__main__":
+    gentsim = GentSimModel(10, 10, 10, 0.5, 1, 0.5)
+    occupied_count = np.sum(~gentsim.empty_houses)
+    print(f"Total occupied houses: {occupied_count}")
+    for _ in range(10):  # Run for 10 steps
+        gentsim.step()
+        occupied_count = np.sum(~gentsim.empty_houses)
+        print(f"Total occupied houses: {occupied_count}")
 
-
-gentsim = GentSimModel(10, 10, 0.5, 1, 0.5)
-occupied_count = np.sum(~gentsim.empty_houses)
-print(f"Total occupied houses: {occupied_count}")
-for _ in range(10):  # Run for 10 steps
-
-    gentsim.step()
+    # Count occupied houses
     occupied_count = np.sum(~gentsim.empty_houses)
     print(f"Total occupied houses: {occupied_count}")
 
-
-# Count occupied houses
-occupied_count = np.sum(~gentsim.empty_houses)
-print(f"Total occupied houses: {occupied_count}")
-
-agent_df = gentsim.datacollector.get_agent_vars_dataframe()
-print(agent_df.head(100))
+    agent_df = gentsim.datacollector.get_agent_vars_dataframe()
+    print(agent_df.head(100))

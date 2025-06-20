@@ -5,10 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "altair>=5.5.0",
     "contextily>=1.6.2",
     "geopandas>=1.1.0",
     "mesa>=3.2.0",
     "networkx>=3.5",
     "pip>=25.1.1",
+    "seaborn>=0.13.2",
     "shapely>=2.1.1",
+    "solara>=1.48.0",
 ]
