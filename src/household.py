@@ -60,17 +60,31 @@ class Household(Agent):
             "New position must not be empty"
         )
 
+        # Update the neighbourhoods
+        old_neighbourhood = model.neighbourhoods[tuple(ti // model.N_neighbourhoods for ti in old_pos)]
+        new_neighbourhood = model.neighbourhoods[tuple(ti // model.N_neighbourhoods for ti in location)]
+
+        old_neighbourhood.residents -= 1
+        new_neighbourhood.residents += 1
+        new_neighbourhood.total_income += self.income
+        old_neighbourhood.total_income -= self.income
+
         model.grid.move_agent(self, location)
 
 
-def income_percentile(model, income, pos) -> float:
+def income_percentile(model, income, pos, b = 0) -> float:
     """
     Calculate the income percentile of the household.
     """
     assert income > 0, "Income must be greater than 0"
-    neighbours = model.grid.get_neighbors(pos, True, False)
-    total = sum([n.income for n in neighbours])
-    return income / (total + income)
+
+    local_neighbours = model.grid.get_neighbors(pos, True, False)
+    local_total = sum([n.income for n in local_neighbours])
+    local_ip = income / (local_total + income) 
+
+    chunk_total = model.neighbourhoods[tuple(ti // model.N_neighbourhoods for ti in pos)].total_income
+    chunk_ip = income / chunk_total
+    return b * chunk_ip + (1 - b) * local_ip
 
 
 def move_out_low(model, income, pos) -> float:
