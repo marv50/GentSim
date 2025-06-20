@@ -51,7 +51,8 @@ class Household(Agent):
         """
         Move the household to a new location.
         """
-        model.empty_houses[self.pos] = True
+        old_pos = self.pos
+        model.empty_houses[old_pos] = True
         model.empty_houses[location] = False
 
         assert bool(model.empty_houses[self.pos]) is True, "Old position must be empty"
@@ -166,6 +167,9 @@ def move_in(model, utility_func, **kwargs) -> tuple:
         for idx in empty_indices
     }
     total_sum = sum(house_utilities.values())
+    if total_sum == 0:
+        return 0  # All utilities are 0
+
     houses_probs = {
         new_pos: value / (total_sum) if (total_sum - value) != 0 else 0
         for new_pos, value in house_utilities.items()
@@ -179,15 +183,15 @@ def move_in(model, utility_func, **kwargs) -> tuple:
     return None
 
 
-def get_income_bin(income: float) -> int:
+def get_income_bin(income: float) -> str:  # Fixed return type annotation
     """
     Get the income bin for the given income.
     """
     if income < 38690:
         return "low"
-    elif 38690 < income < 77280:
+    elif 38690 <= income < 77280:  # Fixed condition to handle edge case
         return "medium"
-    elif income > 77280:
+    elif income >= 77280:  # Fixed condition to handle edge case
         return "high"
     else:
         raise ValueError("Income must be greater than 0")

@@ -5,6 +5,8 @@ from mesa.space import SingleGrid
 
 from household import Household
 from neighbourhood import Neighbourhood
+from src.household import Household
+from src.neighbourhood import Neighbourhood
 
 
 class GentSimModel(Model):
@@ -106,6 +108,7 @@ class GentSimModel(Model):
         neighbourhood = self.neighbourhoods[pos[0] // N, pos[1] // N]
         neighbourhood.residents += 1
         neighbourhood.total_income += household.income
+        self.agent_lst.append(household)  # track the agent
 
         self.agent_lst.append(household)
 
