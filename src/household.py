@@ -22,7 +22,6 @@ class Household(Agent):
         if self.income_bin == "low":
             move_out_prob = move_out_low(model, self.income, *self.pos)
             if model.random.random() < move_out_prob:
-                # Fixed: pass income and position as separate arguments
                 new_location = move_in(model, move_in_low, self.income, self.pos)
                 if new_location:
                     self.move(model, new_location)
@@ -30,14 +29,12 @@ class Household(Agent):
         if self.income_bin == "medium":
             move_out_prob = move_out_medium(model, self.income, *self.pos)
             if model.random.random() < move_out_prob:
-                # Fixed: pass income and position as separate arguments
                 new_location = move_in(model, move_in_medium, self.income, self.pos)
                 if new_location:
                     self.move(model, new_location)
 
         if self.income_bin == "high":
             if model.random.random() < model.p_h:
-                # Fixed: pass position as tuple
                 new_location = move_in(model, move_in_high, self.pos)
                 if new_location:
                     self.move(model, new_location)
@@ -53,8 +50,8 @@ class Household(Agent):
         model.grid.move_agent(self, location)
 
         # Fixed assertions
-       # assert model.empty_houses[old_pos] is True, "Old position must be empty after move"
-        #assert model.empty_houses[location] is False, "New position must be occupied after move"
+        assert model.empty_houses[old_pos] is True, "Old position must be empty after move"
+        assert model.empty_houses[location] is False, "New position must be occupied after move"
 
 
 def income_percentile(model, income, x, y) -> float:
