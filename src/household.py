@@ -11,8 +11,6 @@ class Household(Agent):
         super().__init__(model)
         self.income = income
         self.income_bin = get_income_bin(income)
-        # self.pos = pos
-        # self.ph
 
     def step(self, model: Model) -> None:
         """
@@ -40,14 +38,14 @@ class Household(Agent):
                 if new_location:
                     self.move(model, new_location)
 
-        # if self.income_bin == "high":
-        #     if model.random.random() < model.p_h:
-        #         new_location = move_in(
-        #             model,
-        #             utility_func=move_in_high,
-        #         )
-        #         if new_location:
-        #             self.move(model, new_location)
+        if self.income_bin == "high":
+            if model.random.random() < model.p_h:
+                new_location = move_in(
+                    model,
+                    utility_func=move_in_high,
+                )
+                if new_location:
+                    self.move(model, new_location)
 
     def move(self, model, location):
         """
@@ -112,15 +110,46 @@ def move_in_medium(model, income, pos) -> float:
     return p
 
 
-def move_in_high(model, pos) -> float:
+def move_in_high(model, x, y) -> float:
     """
-    Compute average income growth rate phi^epsilon(t) for a cell, required for h
-    to move in somewhere else.
+    Compute average income growth rate phi^epsilon(t) for a cell, required for high
+    income households to move in somewhere else.
     """
-    history = model.income_history[pos]
-    if len(history) < model.epsilon + 1:
+    if len(model.grid_history) < model.epsilon + 1:
         return 0.0
-    diffs = [history[-(i + 1)] - history[-(i + 2)] for i in range(model.epsilon)]
+
+    # Get the last epsilon + 1 grid snapshots to calculate epsilon differences
+    recent_grids = model.grid_history[-(model.epsilon + 1) :]
+
+    # Calculate median income for the Moore neighborhood in each time period
+    medians = []
+    for grid_snapshot in recent_grids:
+        # Get Moore neighborhood coordinates (including center)
+        neighbor_incomes = []
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < model.grid.width and 0 <= ny < model.grid.height:
+                    income = grid_snapshot[nx, ny]
+                    if income > 0:  # Only include occupied cells
+                        neighbor_incomes.append(income)
+
+        if neighbor_incomes:
+            medians.append(np.median(neighbor_incomes))
+        else:
+            medians.append(0.0)
+
+    # Calculate the sum of differences over epsilon periods
+    # medians[0] is oldest, medians[-1] is most recent
+    if len(medians) < model.epsilon + 1:
+        return 0.0
+
+    # Calculate differences: [t-(epsilon-1)] - [t-epsilon], [t-(epsilon-2)] - [t-(epsilon-1)], ..., [t] - [t-1]
+    diffs = []
+    for i in range(model.epsilon):
+        diff = medians[i + 1] - medians[i]  # newer - older
+        diffs.append(diff)
+
     return sum(diffs) / model.epsilon
 
 
