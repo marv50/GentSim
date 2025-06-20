@@ -53,7 +53,7 @@ class GentSimModel(Model):
             self.N_neighbourhoods * self.N_houses,
             False,
         )
-        assert self.N_agents <= self.N_neighbourhoods * self.N_houses, (
+        assert self.N_agents <= self.N_neighbourhoods * self.N_neighbourhoods * self.N_houses * self.N_houses, (
             "Number of agents cannot exceed grid size"
         )
 

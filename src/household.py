@@ -111,11 +111,12 @@ def move_in_medium(model, income, pos) -> float:
     return p
 
 
-def move_in_high(model, x, y) -> float:
+def move_in_high(model, pos) -> float:
     """
     Compute average income growth rate phi^epsilon(t) for a cell, required for high
     income households to move in somewhere else.
     """
+    x, y = pos
     if len(model.grid_history) < model.epsilon + 1:
         return 0.0
 
