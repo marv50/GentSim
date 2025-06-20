@@ -18,34 +18,34 @@ class Household(Agent):
         """
         if self.income_bin == "low":
             move_out_prob = move_out_low(model, self.income, self.pos)
-            if model.random.random() < move_out_prob:
-                new_location = move_in(
-                    model,
-                    utility_func=move_in_low,
-                    income=self.income,
-                )
-                if new_location:
-                    self.move(model, new_location)
+            if model.random.random() >= move_out_prob: return
+            new_location = move_in(
+                model,
+                utility_func=move_in_low,
+                income=self.income,
+            )
+            if not new_location: return
+            self.move(model, new_location)
 
         if self.income_bin == "medium":
             move_out_prob = move_out_medium(model, self.income, self.pos)
-            if model.random.random() < move_out_prob:
-                new_location = move_in(
-                    model,
-                    utility_func=move_in_medium,
-                    income=self.income,
-                )
-                if new_location:
-                    self.move(model, new_location)
+            if model.random.random() >= move_out_prob: return
+            new_location = move_in(
+                model,
+                utility_func=move_in_medium,
+                income=self.income,
+            )
+            if not new_location: return
+            self.move(model, new_location)
 
         if self.income_bin == "high":
-            if model.random.random() < model.p_h:
-                new_location = move_in(
-                    model,
-                    utility_func=move_in_high,
-                )
-                if new_location:
-                    self.move(model, new_location)
+            if model.random.random() >= model.p_h: return
+            new_location = move_in(
+                model,
+                utility_func=move_in_high,
+            )
+            if not new_location:return
+            self.move(model, new_location)
 
     def move(self, model, location):
         """
