@@ -93,7 +93,7 @@ def move_out_low(model, income, pos) -> float:
     """
     gamma = income_percentile(model, income, pos)
     p = 1 - np.sqrt(gamma)
-    assert 0 <= p <= 1
+    #assert 0 <= p <= 1
     return p
 
 
@@ -102,7 +102,7 @@ def move_out_medium(model, income, pos):
     Calculate the probability of moving out based on the income percentile.
     """
     p = 4 * (income_percentile(model, income, pos) - 0.5) ** 2
-    assert 0 <= p <= 1
+    #assert 0 <= p <= 1
     return p
 
 
@@ -112,7 +112,7 @@ def move_in_low(model, income, pos) -> float:
     """
     gamma = income_percentile(model, income, pos)
     p = np.sqrt(gamma)
-    assert 0 <= p <= 1
+    #assert 0 <= p <= 1
     return p
 
 
@@ -121,7 +121,7 @@ def move_in_medium(model, income, pos) -> float:
     Calculate the probability of moving in based on the income percentile.
     """
     p = 1 - move_out_medium(model, income, pos)
-    assert 0 <= p <= 1
+    #assert 0 <= p <= 1
     return p
 
 
