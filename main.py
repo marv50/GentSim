@@ -1,6 +1,6 @@
 import numpy as np
 
-from scripts.income_distribution import load_distribution, plot_income_distribution
+from src.income_distribution import load_distribution, plot_income_distribution
 from src.model import GentSimModel
 
 if __name__ == "__main__":

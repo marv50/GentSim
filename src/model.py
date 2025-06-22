@@ -5,7 +5,7 @@ from mesa.space import SingleGrid
 
 # from household import Household
 # from neighbourhood import Neighbourhood
-from scripts.income_distribution import create_income_distribution, load_distribution
+from src.income_distribution import create_income_distribution, load_distribution
 from src.household import Household
 from src.neighbourhood import Neighbourhood
 
