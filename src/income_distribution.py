@@ -39,35 +39,6 @@ def repeat_data(df: pd.DataFrame) -> pd.Series:
     return pd.Series(expanded_data)
 
 
-def plot_income_distribution(
-    df: pd.DataFrame,
-    title: str = "Income Distribution",
-    xlabel: str = "Income",
-    ylabel: str = "Frequency",
-    bins: int = 50,
-    save=True,
-    save_path: str = "fig/income_distribution.png",
-):
-    """
-    Plot the income distribution.
-    """
-    expanded_data = repeat_data(df)
-    plt.figure(figsize=(10, 6))
-    pd.Series(expanded_data).plot(
-        kind="hist", bins=bins, edgecolor="black", density=True
-    )
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.grid(False)
-    plt.tight_layout()
-    if save:
-        plt.savefig(save_path)
-        plt.close()
-    else:
-        plt.show()
-
-
 def create_income_distribution(df: pd.DataFrame) -> rv_discrete:
     income_distribution = rv_discrete(
         name="income_dist", values=(df["income_point"], df["probability"])
