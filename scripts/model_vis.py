@@ -1,0 +1,25 @@
+from src.csv_converter import csv_to_timeseries_grid
+from scripts.create_plots import visualize_grid_evolution
+
+def main():
+    file_path = 'data/agent_data.csv'
+
+    # Convert using income
+    income_grids = csv_to_timeseries_grid(file_path, value_column='income')
+    print(f"Income grid shape: {income_grids.shape}")
+
+    # Convert using agent ID
+    agent_grids = csv_to_timeseries_grid(file_path, value_column='AgentID')
+    print(f"Agent ID grid shape: {agent_grids.shape}")
+
+    # Stats
+    print(f"Grid size: {income_grids.shape[1]} x {income_grids.shape[2]}")
+    print(f"Time steps: {income_grids.shape[0]}")
+    print(f"Income range: {income_grids.min()} - {income_grids.max()}")
+
+    # Plot
+    visualize_grid_evolution(income_grids, save_path='fig/income_grid_evolution.png')
+
+
+if __name__ == "__main__":
+    main()
