@@ -52,8 +52,10 @@ def visualize_grid_evolution(timeseries_grid: np.ndarray,
         matplotlib.use('Agg')
 
     total_steps = timeseries_grid.shape[0]
-    if not step_indices:
-        step_indices = list(range(min(6, total_steps)))
+    if step_indices is None:
+        num_snapshots = min(6, total_steps)
+        step_indices = np.linspace(0, total_steps - 1, num=num_snapshots, dtype=int).tolist()
+
 
     n = len(step_indices)
     cols = min(3, n)
@@ -77,7 +79,7 @@ def visualize_grid_evolution(timeseries_grid: np.ndarray,
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=300)
+        plt.savefig(save_path, dpi=200)
         print(f"Plot saved to: {save_path}")
     else:
         plt.show()
