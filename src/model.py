@@ -105,20 +105,18 @@ class GentSimModel(Model):
             assert isinstance(pos, tuple), "Position must be a tuple"
 
             agent = Household(self, income=self.income_samples.pop(0))
+            self.update_neighbourhood(agent, pos)
             self.grid.place_agent(agent, pos)
             self.empty_houses[pos] = False  # Mark the house as occupied
 
-    def new_agent(self, pos, N) -> None:
+    def update_neighbourhood(self, agent, pos) -> None:
         """
         Create a new agent at the specified position.
         """
-        household = Household(self, pos)
-        neighbourhood = self.neighbourhoods[pos[0] // N, pos[1] // N]
+        neighbourhood = self.neighbourhoods[pos[0] // self.N_neighbourhoods, pos[1] // self.N_neighbourhoods]
         neighbourhood.residents += 1
-        neighbourhood.total_income += household.income
-        self.agent_lst.append(household)  # track the agent
-
-        return household
+        neighbourhood.total_income += agent.income
+        # return 
 
     def get_current_income_grid(self) -> np.ndarray:
         """
