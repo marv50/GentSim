@@ -70,7 +70,7 @@ class Household(Agent):
         model.grid.move_agent(self, location)
 
 
-    def income_percentile(self, model, target, b = 0) -> float:
+    def income_percentile(self, model, target, b = 1) -> float:
         """
         Calculate the income percentile of the household.
         """

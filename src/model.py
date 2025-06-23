@@ -37,7 +37,7 @@ class GentSimModel(Model):
         income_distribution = create_income_distribution(
             load_distribution("data/income_data.csv")
         )
-        self.income_samples = list(income_distribution.rvs(size=N_agents))
+        self.income_samples = list(income_distribution.rvs(size=N_agents) * 1000)
         np.random.shuffle(self.income_samples)
         self.init_population(N_agents)
 
