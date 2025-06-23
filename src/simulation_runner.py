@@ -31,7 +31,8 @@ def single_run(
         verbose (bool): Whether to print progress and summary info.
         plot_income (bool): Whether to show the income distribution plot.
     """
-    gentsim = GentSimModel(n_agents, n_neighborhoods, n_houses, theta, epsilon, p_h)
+    gentsim = GentSimModel(n_agents, n_neighborhoods,
+                           n_houses, theta, epsilon, p_h)
 
     for step in range(steps):
         print(f"Running step {step + 1}/{steps}...")
@@ -44,3 +45,42 @@ def single_run(
         print(f"Agent data saved to: {output_path}")
 
     return agent_df
+
+
+def multiple_runs(
+    n_agents,
+    n_neighborhoods,
+    n_houses,
+    theta,
+    epsilon,
+    p_h,
+    steps,
+    runs=10,
+    output_path="data/combined_agent_data.csv",
+):
+    """
+    Runs multiple simulations of GentSimModel and saves the results.
+
+    Parameters:
+        n_agents (int): Number of agents.
+        n_neighborhoods (int): Number of neighborhoods.
+        n_houses (int): Number of houses.
+        theta (float): Agent preference for neighborhood similarity.
+        epsilon (float): Income-based decision threshold.
+        p_h (float): Probability of household relocation attempt.
+        steps (int): Number of simulation steps to run.
+        runs (int): Number of simulation runs to perform.
+        output_path (str): Path to save the agent-level data CSV.
+    """
+    all_data = []
+
+    for run in range(runs):
+        print(f"Running simulation {run + 1}/{runs}...")
+        agent_df = single_run(
+            n_agents, n_neighborhoods, n_houses, theta, epsilon, p_h, steps, save_data=False
+        )
+        all_data.append(agent_df)
+
+    combined_df = pd.concat(all_data)
+    combined_df.to_csv(output_path, index=True)
+    print(f"Combined agent data saved to: {output_path}")
