@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 from src.model import GentSimModel
-from src.income_distribution import load_distribution, plot_income_distribution
 
 
 def single_run(
@@ -15,7 +14,6 @@ def single_run(
     steps,
     output_path="data/agent_data.csv",
     save_data=True,
-
 ):
     """
     Runs a single simulation of GentSimModel for a given number of steps.
@@ -33,8 +31,7 @@ def single_run(
         verbose (bool): Whether to print progress and summary info.
         plot_income (bool): Whether to show the income distribution plot.
     """
-    gentsim = GentSimModel(n_agents, n_neighborhoods,
-                           n_houses, theta, epsilon, p_h)
+    gentsim = GentSimModel(n_agents, n_neighborhoods, n_houses, theta, epsilon, p_h)
 
     for step in range(steps):
         print(f"Running step {step + 1}/{steps}...")
