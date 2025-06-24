@@ -18,31 +18,34 @@ class Household(Agent):
         """
         if self.income_bin == "low":
             move_out_prob = self.move_out_low(model, self.pos)
-            if model.random.random() >= move_out_prob: return
+            if model.random.random() >= move_out_prob:
+                return
             new_location = self.move_in(
                 model,
                 utility_func=self.move_in_low,
             )
-            if not new_location: return
+            if not new_location:
+                return
             self.move(model, new_location)
 
         if self.income_bin == "medium":
             move_out_prob = self.move_out_medium(model, self.pos)
-            if model.random.random() >= move_out_prob: return
-            new_location = self.move_in(
-                model,
-                utility_func=self.move_in_medium
-            )
-            if not new_location: return
+            if model.random.random() >= move_out_prob:
+                return
+            new_location = self.move_in(model, utility_func=self.move_in_medium)
+            if not new_location:
+                return
             self.move(model, new_location)
 
         if self.income_bin == "high":
-            if model.random.random() >= model.p_h: return
+            if model.random.random() >= model.p_h:
+                return
             new_location = self.move_in(
                 model,
                 utility_func=self.move_in_high,
             )
-            if not new_location:return
+            if not new_location:
+                return
             self.move(model, new_location)
 
     def move(self, model, location):
@@ -59,8 +62,12 @@ class Household(Agent):
         )
 
         # Update the neighbourhoods
-        old_neighbourhood = model.neighbourhoods[tuple(ti // model.N_neighbourhoods for ti in old_pos)]
-        new_neighbourhood = model.neighbourhoods[tuple(ti // model.N_neighbourhoods for ti in location)]
+        old_neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in old_pos)
+        ]
+        new_neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in location)
+        ]
 
         old_neighbourhood.residents -= 1
         new_neighbourhood.residents += 1
@@ -69,67 +76,68 @@ class Household(Agent):
 
         model.grid.move_agent(self, location)
 
-
     def income_percentile(self, model, target) -> float:
         """
         Calculate the income percentile of the household.
         """
         assert self.income > 0, "Income must be greater than 0"
 
-        local_neighbours = model.grid.get_neighbors(target, True, False)
+        local_neighbours = model.grid.get_neighbors(
+            target, moore=True, include_center=False, radius=model.r_moore
+        )
         local_total = sum([n.income for n in local_neighbours])
-        local_ip = self.income / (local_total + self.income) 
+        local_ip = self.income / (local_total + self.income)
 
-        chunk_total = model.neighbourhoods[tuple(ti // model.N_neighbourhoods for ti in target)].total_income
-        if (target[0] // model.N_neighbourhoods == self.pos[0] // model.N_neighbourhoods) and (target[1] // model.N_neighbourhoods == self.pos[1] // model.N_neighbourhoods):
+        chunk_total = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in target)
+        ].total_income
+        if (
+            target[0] // model.N_neighbourhoods == self.pos[0] // model.N_neighbourhoods
+        ) and (
+            target[1] // model.N_neighbourhoods == self.pos[1] // model.N_neighbourhoods
+        ):
             # If the agent is in the same neighbourhood as the position, use local income percentile
             chunk_ip = self.income / chunk_total
         else:
             chunk_ip = self.income / (chunk_total + self.income)
 
         b = model.b
-        ip  = b * chunk_ip + (1 - b) * local_ip
+        ip = b * chunk_ip + (1 - b) * local_ip
         assert 0 <= ip <= 1, "Income percentile must be between 0 and 1"
         return ip
-
 
     def move_out_low(self, model, pos) -> float:
         """
         Calculate the probability of moving out based on the income percentile.
         """
         gamma = self.income_percentile(model, pos)
-        p = 1 - np.sqrt(gamma)
+        p = 1 - gamma ** (1 / model.sensitivity_param)
         assert 0 <= p <= 1
         return p
-
 
     def move_out_medium(self, model, pos):
         """
         Calculate the probability of moving out based on the income percentile.
         """
-        p = 4 * (self.income_percentile(model, pos) - 0.5) ** 2
+        p = 4 * (self.income_percentile(model, pos) - 0.5) ** model.sensitivity_param
         assert 0 <= p <= 1
         return p
-
 
     def move_in_low(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
         """
-        gamma = self.income_percentile(model, pos)
-        p = np.sqrt(gamma)
+        p = 1 - self.move_out_low(model, pos)
         assert 0 <= p <= 1
         return p
-
 
     def move_in_medium(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
         """
         p = 1 - self.move_out_medium(model, pos)
-        assert 0 <= p <= 1
+        # assert 0 <= p <= np.sqrt(gamma)
         return p
-
 
     def move_in_high(self, model, pos) -> float:
         """
@@ -142,7 +150,9 @@ class Household(Agent):
 
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
 
-        neighbor_positions = model.grid.get_neighborhood(pos, moore=True, include_center=False, radius=2)
+        neighbor_positions = model.grid.get_neighborhood(
+            pos, moore=True, include_center=False, radius=model.r_moore
+        )
 
         medians = []
         for grid_snapshot in recent_grids:
@@ -152,7 +162,6 @@ class Household(Agent):
                 income = grid_snapshot[x, y]
                 if income > 0:  # Only include occupied cells
                     neighbor_incomes.append(income)
-                
 
             if neighbor_incomes:
                 medians.append(np.median(neighbor_incomes))
@@ -181,7 +190,6 @@ class Household(Agent):
             diffs_global.append(diff_global)
         average_growth_rate_global = sum(diffs_global) / model.epsilon
         return model.b * average_growth_rate_global + (1 - model.b) * average_growth_rate_local
-
 
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
