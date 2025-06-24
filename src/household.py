@@ -119,7 +119,6 @@ class Household(Agent):
         """
         Calculate the probability of moving out based on the income percentile.
         """
-        print(model.sensitivity_param)
         p = 4 * (self.income_percentile(model, pos) - 0.5) ** model.sensitivity_param
         assert 0 <= p <= 1
         return p
