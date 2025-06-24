@@ -7,7 +7,7 @@ if __name__ == "__main__":
         n_agents=300,
         n_neighborhoods=5,
         n_houses=5,
-        epsilon=0.8,
+        epsilon=5,
         p_h=0.2,
         b=0.5,
         r_moore=1,
