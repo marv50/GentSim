@@ -158,7 +158,7 @@ def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples)
             p_h=p_h,
             b=b,
             r_moore=int(r_moore),
-            sensitivity_param=int(sensitivity_param),
+            sensitivity_param=2,
             steps=steps,
             runs=runs,
             output_path=output_path,
