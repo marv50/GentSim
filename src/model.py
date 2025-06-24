@@ -3,10 +3,8 @@ from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
-# from household import Household
-# from neighbourhood import Neighbourhood
-from src.income_distribution import create_income_distribution, load_distribution
 from src.household import Household
+from src.income_distribution import create_income_distribution, load_distribution
 from src.neighbourhood import Neighbourhood
 
 
@@ -20,10 +18,10 @@ class GentSimModel(Model):
         N_agents: int = 10,
         N_neighbourhoods: int = 5,
         N_houses: int = 5,
-        theta: float = 0.5,
         epsilon: int = 1,
         p_h: int = 0.5,
         b: float = 0.5,
+        sensitivity_param: int = 2,
     ) -> None:
         super().__init__()
 
@@ -32,10 +30,10 @@ class GentSimModel(Model):
         self.N_agents = N_agents
         self.init_grid()
 
-        self.theta = theta
         self.epsilon = epsilon
         self.p_h = p_h
         self.b = b
+        self.sensitivity_param = sensitivity_param
         income_distribution = create_income_distribution(
             load_distribution("data/income_data.csv")
         )
@@ -115,10 +113,12 @@ class GentSimModel(Model):
         """
         Create a new agent at the specified position.
         """
-        neighbourhood = self.neighbourhoods[pos[0] // self.N_neighbourhoods, pos[1] // self.N_neighbourhoods]
+        neighbourhood = self.neighbourhoods[
+            pos[0] // self.N_neighbourhoods, pos[1] // self.N_neighbourhoods
+        ]
         neighbourhood.residents += 1
         neighbourhood.total_income += agent.income
-        # return 
+        # return
 
     def get_current_income_grid(self) -> np.ndarray:
         """
