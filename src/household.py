@@ -137,7 +137,7 @@ class Household(Agent):
         income households to move in somewhere else.
         """
         if len(model.grid_history) < model.epsilon + 1:
-            print("Not enough history for high income to calculate phi^epsilon(t)")
+            # print("Not enough history for high income to calculate phi^epsilon(t)")
             return 0.0
 
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
@@ -169,22 +169,19 @@ class Household(Agent):
             diff = medians[i + 1] - medians[i]  # newer - older
             diffs.append(diff)
 
-        # if (sum(diffs) / model.epsilon) > 0:
-        #     print(f"Average income growth rate phi^epsilon(t) for {pos} is {sum(diffs) / model.epsilon}")
-        return sum(diffs) / model.epsilon
+        average_growth_rate_local = sum(diffs) / model.epsilon
 
-        # Calculate the sum of differences over epsilon periods
-        # medians[0] is oldest, medians[-1] is most recent
-        if len(medians) < model.epsilon + 1:
-            return 0.0
+        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
 
-        # Calculate differences: [t-(epsilon-1)] - [t-epsilon], [t-(epsilon-2)] - [t-(epsilon-1)], ..., [t] - [t-1]
-        diffs = []
+        
+        diffs_global = []
         for i in range(model.epsilon):
-            diff = medians[i + 1] - medians[i]  # newer - older
-            diffs.append(diff)
+            diff_global = recent_neighbourhoods[i + 1][pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods] - \
+                          recent_neighbourhoods[i][pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods]
+            diffs_global.append(diff_global)
+        average_growth_rate_global = sum(diffs_global) / model.epsilon
+        return model.b * average_growth_rate_global + (1 - model.b) * average_growth_rate_local
 
-        return sum(diffs) / model.epsilon
 
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:

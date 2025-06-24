@@ -6,7 +6,7 @@ from src.csv_converter import *
 from scripts.create_plots import plot_income_distribution, visualize_grid_evolution
 
 if __name__ == "__main__":
-    single_run(600, 5, 5, 0.5, 10, 0.8, 300)
+    single_run(600, 5, 5, 0.5, 10, 0.8, 100)
 
     plot_income_distribution(
         title="Income Distribution in the Netherlands 2022",

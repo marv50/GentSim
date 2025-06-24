@@ -64,10 +64,20 @@ def visualize_grid_evolution(timeseries_grid: np.ndarray,
     fig, axes = plt.subplots(rows, cols, figsize=figsize)
     axes = np.atleast_2d(axes).reshape(rows, cols)
 
+    import matplotlib.colors as mcolors
+
+    # Define the bins
+    bounds = [0, 1, 38690, 77280, 100000]
+    labels = ['empty', 'low', 'medium', 'high']
+
+    # Create a ListedColormap and BoundaryNorm
+    cmap = mcolors.ListedColormap(['#000000','#1f77b4', '#2ca02c', '#ff7f0e'])
+    norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
     for i, step_idx in enumerate(step_indices):
         ax = axes[i // cols, i % cols]
         im = ax.imshow(timeseries_grid[step_idx],
-                       cmap='viridis', origin='lower')
+                       cmap=cmap, norm=norm, origin='lower')
         ax.set_title(f"Step {step_idx}")
         ax.set_xlabel("X")
         ax.set_ylabel("Y")

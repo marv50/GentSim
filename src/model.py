@@ -23,7 +23,7 @@ class GentSimModel(Model):
         theta: float = 0.5,
         epsilon: int = 1,
         p_h: int = 0.5,
-        b: float = 0.5,
+        b: float = 1,
     ) -> None:
         super().__init__()
 
@@ -90,8 +90,8 @@ class GentSimModel(Model):
         self.datacollector = DataCollector(
             agent_reporters={"income": lambda a: a.income, "pos": lambda a: a.pos}
         )
-        self.agent_lst = []
         self.grid_history = []
+        self.neighbourhood_history = []
 
     def init_population(self, N_agents: int) -> None:
         """
@@ -138,12 +138,19 @@ class GentSimModel(Model):
         """
         current_grid = self.get_current_income_grid()
         self.grid_history.append(current_grid.copy())
+        self.neighbourhood_history.append(
+            np.array([[n.total_income / n.residents for n in row] for row in self.neighbourhoods])
+        )
+
+
 
         # Optionally limit history length to save memory
         # Keep only the last epsilon + 10 snapshots (some buffer)
-        max_history_length = self.epsilon + 10
+        max_history_length = self.epsilon + 1
         if len(self.grid_history) > max_history_length:
             self.grid_history = self.grid_history[-max_history_length:]
+        if len(self.neighbourhood_history) > max_history_length:
+            self.neighbourhood_history = self.neighbourhood_history[-max_history_length:]
 
     def step(self):
         """
