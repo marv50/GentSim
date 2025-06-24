@@ -23,6 +23,7 @@ class GentSimModel(Model):
         theta: float = 0.5,
         epsilon: int = 1,
         p_h: int = 0.5,
+        b: float = 0.5,
     ) -> None:
         super().__init__()
 
@@ -34,6 +35,7 @@ class GentSimModel(Model):
         self.theta = theta
         self.epsilon = epsilon
         self.p_h = p_h
+        self.b = b
         income_distribution = create_income_distribution(
             load_distribution("data/income_data.csv")
         )
@@ -124,7 +126,7 @@ class GentSimModel(Model):
         """
         income_grid = np.zeros((self.grid.width, self.grid.height))
 
-        for agent in self.agent_lst:
+        for agent in self.agents:
             x, y = agent.pos
             income_grid[x, y] = agent.income
 

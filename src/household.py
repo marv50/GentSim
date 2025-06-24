@@ -70,7 +70,7 @@ class Household(Agent):
         model.grid.move_agent(self, location)
 
 
-    def income_percentile(self, model, target, b = 1) -> float:
+    def income_percentile(self, model, target) -> float:
         """
         Calculate the income percentile of the household.
         """
@@ -87,7 +87,7 @@ class Household(Agent):
         else:
             chunk_ip = self.income / (chunk_total + self.income)
 
-
+        b = model.b
         ip  = b * chunk_ip + (1 - b) * local_ip
         assert 0 <= ip <= 1, "Income percentile must be between 0 and 1"
         return ip
@@ -137,6 +137,7 @@ class Household(Agent):
         income households to move in somewhere else.
         """
         if len(model.grid_history) < model.epsilon + 1:
+            print("Not enough history for high income to calculate phi^epsilon(t)")
             return 0.0
 
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
@@ -151,6 +152,7 @@ class Household(Agent):
                 income = grid_snapshot[x, y]
                 if income > 0:  # Only include occupied cells
                     neighbor_incomes.append(income)
+                
 
             if neighbor_incomes:
                 medians.append(np.median(neighbor_incomes))
@@ -159,14 +161,16 @@ class Household(Agent):
 
         # Calculate the sum of differences over epsilon periods
         if len(medians) < model.epsilon + 1:
+            print("return 0.0")
             return 0.0
-
         # Calculate differences: [t-(epsilon-1)] - [t-epsilon], [t-(epsilon-2)] - [t-(epsilon-1)], ..., [t] - [t-1]
         diffs = []
         for i in range(model.epsilon):
             diff = medians[i + 1] - medians[i]  # newer - older
             diffs.append(diff)
 
+        # if (sum(diffs) / model.epsilon) > 0:
+        #     print(f"Average income growth rate phi^epsilon(t) for {pos} is {sum(diffs) / model.epsilon}")
         return sum(diffs) / model.epsilon
 
         # Calculate the sum of differences over epsilon periods
