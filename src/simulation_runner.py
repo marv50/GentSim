@@ -1,7 +1,9 @@
 import os
 import pandas as pd
 import numpy as np
+import shutil
 from itertools import product
+
 from SALib.sample import saltelli
 
 from src.model import GentSimModel
@@ -130,25 +132,22 @@ def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples)
 
     # Generate parameter combinations using Saltelli sampling
     param_values = saltelli.sample(problem, n_samples, calc_second_order=False)
-
-    # Convert appropriate parameters to integers
     param_values[:, 0] = np.round(param_values[:, 0])  # epsilon
     param_values[:, 3] = np.round(param_values[:, 3])  # r_moore
     param_values[:, 4] = np.round(param_values[:, 4])  # sensitivity_param
 
-    # Ensure output directory exists
+    # Prepare output directory (delete and recreate)
     output_dir = "data/sweep_results"
-    os.makedirs(output_dir, exist_ok=True)
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir)
 
     print(f"\nGenerated {len(param_values)} parameter sets using SALib.")
 
-    # Run the simulations for each sampled parameter set
     for i, (epsilon, p_h, b, r_moore, sensitivity_param) in enumerate(param_values):
         print(f"\n=== Running SALib sweep {i + 1}/{len(param_values)} ===")
 
-        filename = (
-            f"parameter_sweep_{i + 1}"
-        )
+        filename = f"parameter_sweep_{i + 1}.csv"
         output_path = os.path.join(output_dir, filename)
 
         multiple_runs(
