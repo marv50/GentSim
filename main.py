@@ -3,7 +3,15 @@ from src.csv_converter import *
 from src.simulation_runner import single_run
 
 if __name__ == "__main__":
-    single_run(300, 5, 5, 5, 0.8, 2, 300)
+    single_run(
+        n_agents=300,
+        n_neighborhoods=5,
+        n_houses=5,
+        epsilon=0.8,
+        p_h=0.2,
+        sensitivity_param=2,
+        steps=300,
+    )
 
     plot_income_distribution(
         title="Income Distribution in the Netherlands 2022",
