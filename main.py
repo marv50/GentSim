@@ -9,6 +9,8 @@ if __name__ == "__main__":
         n_houses=5,
         epsilon=0.8,
         p_h=0.2,
+        b=0.5,
+        r_moore=1,
         sensitivity_param=2,
         steps=300,
     )

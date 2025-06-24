@@ -21,6 +21,7 @@ class GentSimModel(Model):
         epsilon: int = 1,
         p_h: int = 0.5,
         b: float = 0.5,
+        r_moore: int = 1,
         sensitivity_param: int = 2,
     ) -> None:
         super().__init__()
@@ -34,6 +35,8 @@ class GentSimModel(Model):
         self.p_h = p_h
         self.b = b
         self.sensitivity_param = sensitivity_param
+        self.r_moore = r_moore
+
         income_distribution = create_income_distribution(
             load_distribution("data/income_data.csv")
         )

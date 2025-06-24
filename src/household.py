@@ -82,7 +82,9 @@ class Household(Agent):
         """
         assert self.income > 0, "Income must be greater than 0"
 
-        local_neighbours = model.grid.get_neighbors(target, True, False)
+        local_neighbours = model.grid.get_neighbors(
+            target, moore=True, include_center=False, radius=model.r_moore
+        )
         local_total = sum([n.income for n in local_neighbours])
         local_ip = self.income / (local_total + self.income)
 
@@ -150,7 +152,7 @@ class Household(Agent):
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
 
         neighbor_positions = model.grid.get_neighborhood(
-            pos, moore=True, include_center=False, radius=2
+            pos, moore=True, include_center=False, radius=model.r_moore
         )
 
         medians = []
