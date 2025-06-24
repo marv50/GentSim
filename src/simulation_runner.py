@@ -147,7 +147,7 @@ def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples)
         print(f"\n=== Running SALib sweep {i + 1}/{len(param_values)} ===")
 
         filename = (
-            f"agents_sweep{i}_eps{int(epsilon)}_ph{p_h:.2f}_b{b:.2f}_r{int(r_moore)}_s{int(sensitivity_param)}.csv"
+            f"parameter_sweep_{i + 1}"
         )
         output_path = os.path.join(output_dir, filename)
 
