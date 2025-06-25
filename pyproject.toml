@@ -11,6 +11,7 @@ dependencies = [
     "mesa>=3.2.0",
     "networkx>=3.5",
     "pip>=25.1.1",
+    "salib>=1.5.1",
     "seaborn>=0.13.2",
     "shapely>=2.1.1",
     "solara>=1.48.0",
