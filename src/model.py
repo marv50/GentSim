@@ -142,6 +142,7 @@ class GentSimModel(Model):
             pos[0] // self.N_neighbourhoods, pos[1] // self.N_neighbourhoods
         ]
         neighbourhood.residents += 1
+        agent.neighbourhood = neighbourhood
         neighbourhood.total_income += agent.income
         # return
 
