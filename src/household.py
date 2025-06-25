@@ -86,7 +86,7 @@ class Household(Agent):
             if not new_location:
                 return
             self.move(model, new_location)
-    
+
     def kill(self, model):
         """
         Remove the household from the model.
@@ -111,9 +111,10 @@ class Household(Agent):
         new_income = int(neighbourhood.rent() * 1.5)
         neighbourhood.total_income += new_income - self.income
         self.income = new_income
-        self.income_bin = get_income_bin(new_income)
-        print(f"Household at {self.pos} has been replaced with new income {self.income}.")
-
+        self.income_bin = get_income_bin(new_income, model.income_bounds)
+        print(
+            f"Household at {self.pos} has been replaced with new income {self.income}."
+        )
 
     def move(self, model, location):
         """
@@ -157,8 +158,8 @@ class Household(Agent):
         local_total = sum([n.income for n in local_neighbours])
         local_ip = self.income / (local_total + self.income)
 
-        chunk_total = model.neighbourhoods[target[0] // model.N_neighbourhoods,
-                                    target[1] // model.N_neighbourhoods
+        chunk_total = model.neighbourhoods[
+            target[0] // model.N_neighbourhoods, target[1] // model.N_neighbourhoods
         ].total_income
 
         if (
@@ -174,7 +175,7 @@ class Household(Agent):
         ip = b * chunk_ip + (1 - b) * local_ip
         assert 0 <= ip <= 1, (
             f"Income percentile must be between 0 and 1 but got {ip}: b={b}, chunk_ip={chunk_ip}, local_ip={local_ip}, income={self.income}, chunk_total={chunk_total}, local_total={local_total}"
-            )
+        )
         return ip
 
     def move_out_low(self, model, pos) -> float:
@@ -232,7 +233,7 @@ class Household(Agent):
         if len(model.grid_history) < model.epsilon + 1:
             # print("Not enough history for high income to calculate phi^epsilon(t)")
             return 0.0
-        
+
         neighbourhood = model.neighbourhoods[
             tuple(ti // model.N_neighbourhoods for ti in pos)
         ]

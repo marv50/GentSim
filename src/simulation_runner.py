@@ -21,7 +21,7 @@ def single_run(
     steps,
     rent_factor,
     income_distribution=None,
-    income_bounds=None,
+    income_bounds=[1, 24.000, 71.200, 100.001],
     output_path="data/agent_data.csv",
     save_data=True,
 ):
@@ -80,7 +80,7 @@ def multiple_runs(
     rent_factor,
     steps,
     income_distribution=None,
-    income_bounds=None,
+    income_bounds=[1, 24.000, 71.200, 100.001],
     runs=10,
     output_path="data/combined_agent_data.csv",
 ):

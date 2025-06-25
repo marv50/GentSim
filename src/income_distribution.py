@@ -5,9 +5,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rv_discrete
 
-plt.style.use("bmh")
-
-
 def load_distribution(
     file_name: str = "data/income_data.csv", header=None
 ) -> pd.DataFrame:
