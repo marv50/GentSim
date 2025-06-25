@@ -13,12 +13,13 @@ def single_run(
     n_agents,
     n_neighborhoods,
     n_houses,
+    rent_factor,
     epsilon,
     p_h,
     b,
     r_moore,
     sensitivity_param,
-    rent_factor,
+    steps,
     income_distribution=None,
     income_bounds=[1, 24.000, 71.200, 100.001],
     output_path="data/agent_data.csv",
@@ -52,36 +53,23 @@ def single_run(
 
 
 
+
 def multiple_runs(
     n_agents,
     n_neighborhoods,
     n_houses,
+    rent_factor,
     epsilon,
     p_h,
     b,
     r_moore,
     sensitivity_param,
-    rent_factor,
     steps,
+    runs,
     income_distribution=None,
     income_bounds=[1, 24.000, 71.200, 100.001],
-    runs=10,
     output_path="data/combined_agent_data.csv",
 ):
-    """
-    Runs multiple simulations of GentSimModel and saves the results.
-
-    Parameters:
-        n_agents (int): Number of agents.
-        n_neighborhoods (int): Number of neighborhoods.
-        n_houses (int): Number of houses.
-        epsilon (float): Income-based decision threshold.
-        p_h (float): Probability of household relocation attempt.
-        sensitivity_param (int): Sensitivity parameter for income-based decisions.
-        steps (int): Number of simulation steps to run.
-        runs (int): Number of simulation runs to perform.
-        output_path (str): Path to save the agent-level data CSV.
-    """
     all_data = []
 
     for run in range(runs):
@@ -90,15 +78,16 @@ def multiple_runs(
             n_agents,
             n_neighborhoods,
             n_houses,
+            rent_factor,
             epsilon,
             p_h,
             b,
             r_moore,
             sensitivity_param,
-            rent_factor,
             steps,
             income_distribution,
             income_bounds,
+            output_path,
             save_data=False,
         )
         all_data.append(agent_df)
@@ -108,38 +97,35 @@ def multiple_runs(
     print(f"Combined agent data saved to: {output_path}")
 
 
-def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples):
-    """
-    Performs a parameter sweep using SALib's Saltelli sampling.
 
-    Parameters:
-        n_agents (int): Number of agents.
-        n_neighborhoods (int): Number of neighborhoods.
-        n_houses (int): Number of houses.
-        steps (int): Number of simulation steps.
-        runs (int): Number of simulation runs per setting.
-        n_samples (int): Number of base samples for Saltelli.
-    """
-    # Define the parameter space
+def parameter_sweep(
+    n_agents,
+    n_neighborhoods,
+    n_houses,
+    rent_factor,
+    steps,
+    runs,
+    n_samples,
+    income_distribution=None,
+    income_bounds=[1, 24.000, 71.200, 100.001],
+):
     problem = {
         "num_vars": 5,
         "names": ["epsilon", "p_h", "b", "r_moore", "sensitivity_param"],
         "bounds": [
-            [0, 10],  # epsilon (integer)
-            [0.01, 0.3],  # p_h (probability)
-            [0.0, 1.0],  # b (bounded float)
-            [1, 3],  # r_moore (Moore radius, integer)
-            [1, 10],  # sensitivity_param (weighing factor, integer)
+            [0, 10],
+            [0.01, 0.3],
+            [0.0, 1.0],
+            [1, 3],
+            [1, 10],
         ],
     }
 
-    # Generate parameter combinations using Saltelli sampling
     param_values = saltelli.sample(problem, n_samples, calc_second_order=False)
     param_values[:, 0] = np.round(param_values[:, 0])  # epsilon
     param_values[:, 3] = np.round(param_values[:, 3])  # r_moore
     param_values[:, 4] = np.round(param_values[:, 4])  # sensitivity_param
 
-    # Prepare output directory (delete and recreate)
     output_dir = "data/sweep_results"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
@@ -157,6 +143,7 @@ def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples)
             n_agents=n_agents,
             n_neighborhoods=n_neighborhoods,
             n_houses=n_houses,
+            rent_factor=rent_factor,
             epsilon=int(epsilon),
             p_h=p_h,
             b=b,
@@ -164,7 +151,10 @@ def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples)
             sensitivity_param=2,
             steps=steps,
             runs=runs,
+            income_distribution=income_distribution,
+            income_bounds=income_bounds,
             output_path=output_path,
         )
 
     print("\n✅ SALib parameter sweep completed.")
+
