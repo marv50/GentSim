@@ -23,7 +23,7 @@ class GentSimModel(Model):
         N_neighbourhoods: int = 5,
         N_houses: int = 5,
         income_distribution: None | list = None,
-        income_bounds: list = [1, 38690, 77280, 100001],
+        income_bounds: list = [1, 24.000, 71.200, 100.001],
         epsilon: int = 1,
         p_h: int = 0.5,
         b: float = 0.5,
@@ -36,7 +36,9 @@ class GentSimModel(Model):
         self.N_neighbourhoods = N_neighbourhoods
         self.N_houses = N_houses
         self.N_agents = N_agents
-        self.rent_factor = rent_factor # Factor to calculate rent based on neighbourhood income
+        self.rent_factor = (
+            rent_factor  # Factor to calculate rent based on neighbourhood income
+        )
         self.init_grid()
 
         self.epsilon = epsilon
@@ -95,7 +97,10 @@ class GentSimModel(Model):
 
         self.neighbourhoods = np.array(
             [
-                [Neighbourhood(self, i, j, self.rent_factor) for i in range(self.N_neighbourhoods)]
+                [
+                    Neighbourhood(self, i, j, self.rent_factor)
+                    for i in range(self.N_neighbourhoods)
+                ]
                 for j in range(self.N_neighbourhoods)
             ],
             dtype=Neighbourhood,
