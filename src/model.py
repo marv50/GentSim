@@ -139,23 +139,28 @@ class GentSimModel(Model):
 
     def save_grid_snapshot(self):
         """
-        Save the current state of the grid to history.
+        Save the current state of the grid and neighborhood income to history.
         """
         current_grid = self.get_current_income_grid()
         self.grid_history.append(current_grid.copy())
-        self.neighbourhood_history.append(
-            np.array([[(n.total_income / n.residents) if n is not None and n.residents != 0 else 0 for n in row] for row in self.neighbourhoods])
-        )
 
+        # Handle zero-resident divisions safely
+        neighborhood_income = np.array([
+            [
+                (n.total_income / n.residents) if n.residents > 0 else 0.0
+                for n in row
+            ]
+            for row in self.neighbourhoods
+        ])
+        self.neighbourhood_history.append(neighborhood_income)
 
-
-        # Optionally limit history length to save memory
-        # Keep only the last epsilon + 10 snapshots (some buffer)
+        # Maintain bounded history length
         max_history_length = self.epsilon + 1
         if len(self.grid_history) > max_history_length:
             self.grid_history = self.grid_history[-max_history_length:]
         if len(self.neighbourhood_history) > max_history_length:
             self.neighbourhood_history = self.neighbourhood_history[-max_history_length:]
+
 
     def step(self):
         """
