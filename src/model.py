@@ -23,12 +23,14 @@ class GentSimModel(Model):
         b: float = 0.5,
         r_moore: int = 1,
         sensitivity_param: int = 2,
+        rent_factor: float = 0.7,
     ) -> None:
         super().__init__()
 
         self.N_neighbourhoods = N_neighbourhoods
         self.N_houses = N_houses
         self.N_agents = N_agents
+        self.rent_factor = rent_factor # Factor to calculate rent based on neighbourhood income
         self.init_grid()
 
         self.epsilon = epsilon
@@ -78,7 +80,7 @@ class GentSimModel(Model):
 
         self.neighbourhoods = np.array(
             [
-                [Neighbourhood(i, j) for i in range(self.N_neighbourhoods)]
+                [Neighbourhood(self, i, j, self.rent_factor) for i in range(self.N_neighbourhoods)]
                 for j in range(self.N_neighbourhoods)
             ],
             dtype=Neighbourhood,
@@ -142,7 +144,7 @@ class GentSimModel(Model):
         current_grid = self.get_current_income_grid()
         self.grid_history.append(current_grid.copy())
         self.neighbourhood_history.append(
-            np.array([[n.total_income / n.residents for n in row] for row in self.neighbourhoods])
+            np.array([[(n.total_income / n.residents) if n is not None and n.residents != 0 else 0 for n in row] for row in self.neighbourhoods])
         )
 
 

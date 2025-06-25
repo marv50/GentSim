@@ -16,6 +16,45 @@ class Household(Agent):
         """
         We movin or not
         """
+        neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in self.pos)
+        ]
+
+        if self.income < neighbourhood.rent():
+            # print(f"Household at {self.pos} with income {self.income} cannot afford rent {neighbourhood.rent()}.")
+            # print(f"Total income in neighbourhood: {neighbourhood.total_income}, residents: {neighbourhood.residents}")
+            # If the household cannot afford the rent, it moves out
+            if self.income_bin == "low":
+                new_location = self.move_in(
+                    model,
+                    utility_func=self.move_in_low,
+                )
+                if new_location == 0:
+                    # self.kill(model)
+                    self.replace(model)
+                    return
+            elif self.income_bin == "medium":
+                new_location = self.move_in(
+                    model,
+                    utility_func=self.move_in_medium,
+                )
+                if new_location == 0:
+                    # self.kill(model)
+                    self.replace(model)
+                    return
+            elif self.income_bin == "high":
+                new_location = self.move_in(
+                    model,
+                    utility_func=self.move_in_high,
+                )
+                if new_location == 0:
+                    # self.kill(model)
+                    self.replace(model)
+                    return
+            if not new_location:
+                return
+            self.move(model, new_location)
+
         if self.income_bin == "low":
             move_out_prob = self.move_out_low(model, self.pos)
             if model.random.random() >= move_out_prob:
@@ -47,6 +86,34 @@ class Household(Agent):
             if not new_location:
                 return
             self.move(model, new_location)
+    
+    def kill(self, model):
+        """
+        Remove the household from the model.
+        """
+        model.empty_houses[self.pos] = True
+        neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in self.pos)
+        ]
+        neighbourhood.residents -= 1
+        neighbourhood.total_income -= self.income
+        assert bool(model.empty_houses[self.pos]) is True, "Position must be empty"
+        assert neighbourhood.residents >= 0, "Residents must be non-negative"
+        assert neighbourhood.total_income >= 0, "Total income must be non-negative"
+        print(f"Household at {self.pos} with income {self.income} has been removed.")
+        model.grid.remove_agent(self)
+        self.remove()
+
+    def replace(self, model):
+        neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in self.pos)
+        ]
+        new_income = int(neighbourhood.rent() * 1.5)
+        neighbourhood.total_income += new_income - self.income
+        self.income = new_income
+        self.income_bin = get_income_bin(new_income)
+        print(f"Household at {self.pos} has been replaced with new income {self.income}.")
+
 
     def move(self, model, location):
         """
@@ -56,7 +123,9 @@ class Household(Agent):
         model.empty_houses[old_pos] = True
         model.empty_houses[location] = False
 
-        assert bool(model.empty_houses[self.pos]) is True, "Old position must be empty"
+        assert bool(model.empty_houses[self.pos]) is True or old_pos == location, (
+            f"Old position ({old_pos}) ({self.pos}), must be empty ({model.empty_houses[self.pos]}) or equal to new position ({location})"
+        )
         assert bool(model.empty_houses[location]) is False, (
             "New position must not be empty"
         )
@@ -88,22 +157,24 @@ class Household(Agent):
         local_total = sum([n.income for n in local_neighbours])
         local_ip = self.income / (local_total + self.income)
 
-        chunk_total = model.neighbourhoods[
-            tuple(ti // model.N_neighbourhoods for ti in target)
+        chunk_total = model.neighbourhoods[target[0] // model.N_neighbourhoods,
+                                    target[1] // model.N_neighbourhoods
         ].total_income
+
         if (
             target[0] // model.N_neighbourhoods == self.pos[0] // model.N_neighbourhoods
         ) and (
             target[1] // model.N_neighbourhoods == self.pos[1] // model.N_neighbourhoods
         ):
-            # If the agent is in the same neighbourhood as the position, use local income percentile
             chunk_ip = self.income / chunk_total
         else:
             chunk_ip = self.income / (chunk_total + self.income)
 
         b = model.b
         ip = b * chunk_ip + (1 - b) * local_ip
-        assert 0 <= ip <= 1, "Income percentile must be between 0 and 1"
+        assert 0 <= ip <= 1, (
+            f"Income percentile must be between 0 and 1 but got {ip}: b={b}, chunk_ip={chunk_ip}, local_ip={local_ip}, income={self.income}, chunk_total={chunk_total}, local_total={local_total}"
+            )
         return ip
 
     def move_out_low(self, model, pos) -> float:
@@ -127,6 +198,13 @@ class Household(Agent):
         """
         Calculate the probability of moving in based on the income percentile.
         """
+        neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in pos)
+        ]
+
+        if self.income < neighbourhood.rent():
+            # If the household cannot afford the rent, it cannot move in
+            return 0.0
         p = 1 - self.move_out_low(model, pos)
         assert 0 <= p <= 1
         return p
@@ -135,6 +213,13 @@ class Household(Agent):
         """
         Calculate the probability of moving in based on the income percentile.
         """
+        neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in pos)
+        ]
+
+        if self.income < neighbourhood.rent():
+            # If the household cannot afford the rent, it cannot move in
+            return 0.0
         p = 1 - self.move_out_medium(model, pos)
         # assert 0 <= p <= np.sqrt(gamma)
         return p
@@ -146,6 +231,13 @@ class Household(Agent):
         """
         if len(model.grid_history) < model.epsilon + 1:
             # print("Not enough history for high income to calculate phi^epsilon(t)")
+            return 0.0
+        
+        neighbourhood = model.neighbourhoods[
+            tuple(ti // model.N_neighbourhoods for ti in pos)
+        ]
+        if self.income < neighbourhood.rent():
+            # If the household cannot afford the rent, it cannot move in
             return 0.0
 
         recent_grids = model.grid_history[-(model.epsilon + 1) :]

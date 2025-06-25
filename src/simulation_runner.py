@@ -13,6 +13,7 @@ def single_run(
     r_moore,
     sensitivity_param,
     steps,
+    rent_factor,
     output_path="data/agent_data.csv",
     save_data=True,
 ):
@@ -33,7 +34,7 @@ def single_run(
         plot_income (bool): Whether to show the income distribution plot.
     """
     gentsim = GentSimModel(
-        n_agents, n_neighborhoods, n_houses, epsilon, p_h, b, r_moore, sensitivity_param
+        n_agents, n_neighborhoods, n_houses, epsilon, p_h, b, r_moore, sensitivity_param, rent_factor
     )
 
     for step in range(steps):
@@ -58,6 +59,7 @@ def multiple_runs(
     b,
     r_moore,
     sensitivity_param,
+    rent_factor,
     steps,
     runs=10,
     output_path="data/combined_agent_data.csv",
@@ -89,6 +91,7 @@ def multiple_runs(
             b,
             r_moore,
             sensitivity_param,
+            rent_factor,
             steps,
             save_data=False,
         )
