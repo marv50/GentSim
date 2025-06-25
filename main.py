@@ -7,13 +7,13 @@ if __name__ == "__main__":
         n_agents=300,
         n_neighborhoods=5,
         n_houses=5,
-        epsilon=5,
-        p_h=0.2,
+        epsilon=8,
+        p_h=0.8,
         b=0.5,
         r_moore=1,
         sensitivity_param=2,
         steps=50,
-        rent_factor=0.9,
+        rent_factor=0.6,
     )
 
     plot_income_distribution(

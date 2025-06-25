@@ -102,7 +102,6 @@ def parameter_sweep(
     n_agents,
     n_neighborhoods,
     n_houses,
-    rent_factor,
     steps,
     runs,
     n_samples,
@@ -111,20 +110,19 @@ def parameter_sweep(
 ):
     problem = {
         "num_vars": 5,
-        "names": ["epsilon", "p_h", "b", "r_moore", "sensitivity_param"],
+        "names": ["epsilon", "p_h", "b", "r_moore", "rent_factor"],
         "bounds": [
-            [0, 10],
-            [0.01, 0.3],
-            [0.0, 1.0],
-            [1, 3],
-            [1, 10],
+            [0, 10],       # epsilon
+            [0.01, 0.3],   # p_h
+            [0.0, 1.0],    # b
+            [1, 3],        # r_moore
+            [0.5, 0.9],    # rent_factor
         ],
     }
 
     param_values = saltelli.sample(problem, n_samples, calc_second_order=False)
     param_values[:, 0] = np.round(param_values[:, 0])  # epsilon
     param_values[:, 3] = np.round(param_values[:, 3])  # r_moore
-    param_values[:, 4] = np.round(param_values[:, 4])  # sensitivity_param
 
     output_dir = "data/sweep_results"
     if os.path.exists(output_dir):
@@ -133,7 +131,7 @@ def parameter_sweep(
 
     print(f"\nGenerated {len(param_values)} parameter sets using SALib.")
 
-    for i, (epsilon, p_h, b, r_moore, sensitivity_param) in enumerate(param_values):
+    for i, (epsilon, p_h, b, r_moore, rent_factor) in enumerate(param_values):
         print(f"\n=== Running SALib sweep {i + 1}/{len(param_values)} ===")
 
         filename = f"parameter_sweep_{i + 1}.csv"
@@ -148,7 +146,7 @@ def parameter_sweep(
             p_h=p_h,
             b=b,
             r_moore=int(r_moore),
-            sensitivity_param=2,
+            sensitivity_param=2,  # Hardcoded
             steps=steps,
             runs=runs,
             income_distribution=income_distribution,
@@ -157,4 +155,5 @@ def parameter_sweep(
         )
 
     print("\n✅ SALib parameter sweep completed.")
+
 
