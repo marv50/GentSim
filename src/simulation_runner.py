@@ -19,6 +19,7 @@ def single_run(
     r_moore,
     sensitivity_param,
     steps,
+    rent_factor,
     income_distribution=None,
     income_bounds=None,
     output_path="data/agent_data.csv",
@@ -51,6 +52,7 @@ def single_run(
         b=b,
         r_moore=r_moore,
         sensitivity_param=sensitivity_param,
+        rent_factor=rent_factor,
     )
 
     for step in range(steps):
@@ -75,6 +77,7 @@ def multiple_runs(
     b,
     r_moore,
     sensitivity_param,
+    rent_factor,
     steps,
     income_distribution=None,
     income_bounds=None,
@@ -108,9 +111,10 @@ def multiple_runs(
             b,
             r_moore,
             sensitivity_param,
+            rent_factor,
+            steps,
             income_distribution,
             income_bounds,
-            steps,
             save_data=False,
         )
         all_data.append(agent_df)
