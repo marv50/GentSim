@@ -12,7 +12,7 @@ if __name__ == "__main__":
         b=0.5,
         r_moore=1,
         sensitivity_param=2,
-        steps=300,
+        steps=50,
         rent_factor=0.5,
     )
 

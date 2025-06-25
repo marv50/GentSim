@@ -5,45 +5,46 @@ import numpy as np
 from src.csv_converter import multiple_run_grid
 
 
-def average_across_runs(simulation_results):
+def average_income_at_step(data, step):
     """
-    Averages simulation results across runs.
+    Calculate the average income at a specific time step.
 
     Parameters:
-        simulation_results (np.ndarray): 4D array of shape (num_runs, num_steps, width, height)
+        data (np.ndarray): 4D array with shape (runs, steps, width, height).
+        step (int): The time step to evaluate.
 
     Returns:
-        np.ndarray: 3D array of shape (num_steps, width, height) with averages across runs
+        float: The average income at the given step.
     """
-    return np.mean(simulation_results, axis=0)
+    return np.mean(data[:, step, :, :])
 
 
-def spatial_income_disparity(income_data, N_neighbourhoods, N_houses):
+def average_income_over_time(data):
     """
-    Computes the average (max - min) neighborhood income at final timestep across all runs.
+    Calculate the average income at each time step over all runs and spatial dimensions.
 
     Parameters:
-        income_data (np.ndarray): 4D array of shape (n_runs, n_steps, width, height)
-        N_neighbourhoods (int): Number of neighborhoods along one axis
-        N_houses (int): Size of neighborhood block
-    Returns:
-        float: average max-min neighborhood income difference at final step
-    """
-    final_frames = income_data[:, -1, :, :]  # shape: (n_runs, width, height)
-    diffs = []
+        data (np.ndarray): 4D array with shape (runs, steps, width, height).
 
-    for frame in final_frames:
-        neighborhood_means = []
-        for i in range(N_neighbourhoods):
-            for j in range(N_neighbourhoods):
-                block = frame[
-                    i * N_houses: (i + 1) * N_houses,
-                    j * N_houses: (j + 1) * N_houses
-                ]
-                block_mean = np.mean(block)
-                neighborhood_means.append(block_mean)
-        disparity = max(neighborhood_means) - min(neighborhood_means)
-        diffs.append(disparity)
+    Returns:
+        np.ndarray: 1D array of average income for each time step.
+    """
+    steps = data.shape[1]
+    return np.array([average_income_at_step(data, step) for step in range(steps)])
+
+
+def average_income_final_step(data):
+    """
+    Calculate the average income at the final time step.
+
+    Parameters:
+        data (np.ndarray): 4D array with shape (runs, steps, width, height).
+
+    Returns:
+        float: The average income at the final step.
+    """
+    final_step = data.shape[1] - 1
+    return average_income_at_step(data, final_step)
 
 
 def analyze_sweep(metric, *args, **kwargs):
@@ -65,5 +66,3 @@ def analyze_sweep(metric, *args, **kwargs):
         results.append(result)
 
     return np.array(results)
-
-    return np.mean(diffs)

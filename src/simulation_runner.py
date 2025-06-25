@@ -18,27 +18,11 @@ def single_run(
     b,
     r_moore,
     sensitivity_param,
-    steps,
     rent_factor,
+    steps,
     output_path="data/agent_data.csv",
     save_data=True,
 ):
-    """
-    Runs a single simulation of GentSimModel for a given number of steps.
-
-    Parameters:
-        n_agents (int): Number of agents.
-        n_neighborhoods (int): Number of neighborhoods.
-        n_houses (int): Number of houses.
-        epsilon (float): Income-based decision threshold.
-        p_h (float): Probability of household relocation attempt.
-        sensitivity_param (float): Sensitivity parameter for income-based decisions.
-        steps (int): Number of simulation steps to run.
-        output_path (str): Path to save the agent-level data CSV.
-        save_data (bool): Whether to save the DataFrame to CSV.
-        verbose (bool): Whether to print progress and summary info.
-        plot_income (bool): Whether to show the income distribution plot.
-    """
     gentsim = GentSimModel(
         n_agents, n_neighborhoods, n_houses, epsilon, p_h, b, r_moore, sensitivity_param, rent_factor
     )
@@ -54,6 +38,7 @@ def single_run(
         print(f"Agent data saved to: {output_path}")
 
     return agent_df
+
 
 
 def multiple_runs(
