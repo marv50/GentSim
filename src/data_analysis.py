@@ -37,8 +37,7 @@ def spatial_income_disparity(income_data, N_neighbourhoods, N_houses):
         for i in range(N_neighbourhoods):
             for j in range(N_neighbourhoods):
                 block = frame[
-                    i * N_houses: (i + 1) * N_houses,
-                    j * N_houses: (j + 1) * N_houses
+                    i * N_houses : (i + 1) * N_houses, j * N_houses : (j + 1) * N_houses
                 ]
                 block_mean = np.mean(block)
                 neighborhood_means.append(block_mean)
@@ -51,8 +50,8 @@ def analyze_sweep(metric, *args, **kwargs):
     Analyzes simulation results from multiple CSV files and applies a metric.
     """
 
-    directory = 'data/sweep_results'
-    files = glob.glob(os.path.join(directory, '*.csv'))
+    directory = "data/sweep_results"
+    files = glob.glob(os.path.join(directory, "*.csv"))
 
     results = []
 
@@ -66,4 +65,4 @@ def analyze_sweep(metric, *args, **kwargs):
 
     return np.array(results)
 
-    return np.mean(diffs)
+    # return np.mean(diffs)

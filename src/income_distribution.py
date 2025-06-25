@@ -44,3 +44,21 @@ def create_income_distribution(df: pd.DataFrame) -> rv_discrete:
         name="income_dist", values=(df["income_point"], df["probability"])
     )
     return income_distribution
+
+
+def custom_income_distribution(
+    N_agents: int, bin_probabilities: list, edges: list
+) -> np.ndarray:
+    """
+    Create a custom income distribution for the agents.
+    """
+    assert (
+        len(bin_probabilities) == 3
+    )  # Ensure there are three probabilities for the bins
+    assert len(bin_probabilities) == len(edges) - 1
+
+    counts = np.random.multinomial(N_agents, bin_probabilities)
+    income_distribution = np.hstack(
+        [np.random.randint(edges[i], edges[i + 1], n) for i, n in enumerate(counts)]
+    )
+    return income_distribution

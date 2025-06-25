@@ -4,7 +4,11 @@ from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
 from src.household import Household
-from src.income_distribution import create_income_distribution, load_distribution
+from src.income_distribution import (
+    create_income_distribution,
+    load_distribution,
+    custom_income_distribution,
+)
 from src.neighbourhood import Neighbourhood
 
 
@@ -18,6 +22,8 @@ class GentSimModel(Model):
         N_agents: int = 10,
         N_neighbourhoods: int = 5,
         N_houses: int = 5,
+        income_distribution: None | list = None,
+        income_bounds: list = [1, 38690, 77280, 100001],
         epsilon: int = 1,
         p_h: int = 0.5,
         b: float = 0.5,
@@ -37,10 +43,19 @@ class GentSimModel(Model):
         self.sensitivity_param = sensitivity_param
         self.r_moore = r_moore
 
-        income_distribution = create_income_distribution(
-            load_distribution("data/income_data.csv")
+        self.income_bounds = income_bounds
+        assert isinstance(income_distribution, (list, type(None))), (
+            f"Income distribution must be a list or None, not {type(income_distribution)}"
         )
-        self.income_samples = list(income_distribution.rvs(size=N_agents) * 1000)
+        if income_distribution is None:
+            income_distribution = create_income_distribution(
+                load_distribution("data/income_data.csv")
+            )
+            self.income_samples = list(income_distribution.rvs(size=N_agents) * 1000)
+        else:
+            self.income_samples = list(
+                custom_income_distribution(N_agents, income_distribution, income_bounds)
+            )
         np.random.shuffle(self.income_samples)
         self.init_population(N_agents)
 
@@ -143,13 +158,15 @@ class GentSimModel(Model):
         self.grid_history.append(current_grid.copy())
 
         # Handle zero-resident divisions safely
-        neighborhood_income = np.array([
+        neighborhood_income = np.array(
             [
-                (n.total_income / n.residents) if n.residents > 0 else 0.0
-                for n in row
+                [
+                    (n.total_income / n.residents) if n.residents > 0 else 0.0
+                    for n in row
+                ]
+                for row in self.neighbourhoods
             ]
-            for row in self.neighbourhoods
-        ])
+        )
         self.neighbourhood_history.append(neighborhood_income)
 
         # Maintain bounded history length
@@ -157,8 +174,9 @@ class GentSimModel(Model):
         if len(self.grid_history) > max_history_length:
             self.grid_history = self.grid_history[-max_history_length:]
         if len(self.neighbourhood_history) > max_history_length:
-            self.neighbourhood_history = self.neighbourhood_history[-max_history_length:]
-
+            self.neighbourhood_history = self.neighbourhood_history[
+                -max_history_length:
+            ]
 
     def step(self):
         """

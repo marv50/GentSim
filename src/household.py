@@ -10,7 +10,7 @@ class Household(Agent):
     def __init__(self, model: Model, income: int) -> None:
         super().__init__(model)
         self.income = income
-        self.income_bin = get_income_bin(income)
+        self.income_bin = get_income_bin(income, model.income_bounds)
 
     def step(self, model: Model) -> None:
         """
@@ -182,15 +182,22 @@ class Household(Agent):
 
         recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
 
-        
         diffs_global = []
         for i in range(model.epsilon):
-            diff_global = recent_neighbourhoods[i + 1][pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods] - \
-                          recent_neighbourhoods[i][pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods]
+            diff_global = (
+                recent_neighbourhoods[i + 1][
+                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
+                ]
+                - recent_neighbourhoods[i][
+                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
+                ]
+            )
             diffs_global.append(diff_global)
         average_growth_rate_global = sum(diffs_global) / model.epsilon
-        return model.b * average_growth_rate_global + (1 - model.b) * average_growth_rate_local
-
+        return (
+            model.b * average_growth_rate_global
+            + (1 - model.b) * average_growth_rate_local
+        )
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
         """
@@ -221,15 +228,21 @@ class Household(Agent):
         return None
 
 
-def get_income_bin(income: float) -> str:  # Fixed return type annotation
+def get_income_bin(income: float, bins: list) -> str:  # Fixed return type annotation
     """
     Get the income bin for the given income.
     """
-    if income < 38690:
+    assert isinstance(bins, list) and len(bins) == 4, (
+        "bins must be a list of three elements"
+    )
+    low_income = bins[1]
+    medium_income = bins[2]
+
+    if income < low_income:
         return "low"
-    elif 38690 <= income < 77280:  # Fixed condition to handle edge case
+    elif low_income <= income <= medium_income:  # Fixed condition to handle edge case
         return "medium"
-    elif income >= 77280:  # Fixed condition to handle edge case
+    elif income > medium_income:  # Fixed condition to handle edge case
         return "high"
     else:
         raise ValueError("Income must be greater than 0")
