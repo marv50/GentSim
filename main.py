@@ -13,7 +13,7 @@ if __name__ == "__main__":
         r_moore=1,
         sensitivity_param=2,
         steps=50,
-        rent_factor=0.5,
+        rent_factor=0.9,
     )
 
     plot_income_distribution(
