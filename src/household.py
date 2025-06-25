@@ -11,6 +11,7 @@ class Household(Agent):
         super().__init__(model)
         self.income = income
         self.income_bin = get_income_bin(income, model.income_bounds)
+        self.neighbourhood = None
 
     def step(self, model: Model) -> None:
         """
@@ -142,6 +143,8 @@ class Household(Agent):
         new_neighbourhood.residents += 1
         new_neighbourhood.total_income += self.income
         old_neighbourhood.total_income -= self.income
+
+        self.neighbourhood = new_neighbourhood
 
         model.grid.move_agent(self, location)
 
