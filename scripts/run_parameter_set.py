@@ -5,7 +5,7 @@ from src.csv_converter import multiple_run_grid
 from src.data_analysis import *
 
 multiple_runs(
-    n_agents=50,
+    n_agents=100,
     n_neighborhoods=5,
     n_houses=5,
     epsilon=5,
@@ -15,11 +15,19 @@ multiple_runs(
     sensitivity_param=2,
     rent_factor=0.5,
     steps=50,
-    runs=2,
+    runs=10,
     output_path='data/combined_agent_data.csv'
 )
 
 
 path = 'data/combined_agent_data.csv'
-array = multiple_run_grid(path)  # Ensure this variable exists after running multiple_runs
-print(array)
+array = multiple_run_grid(path)  
+
+result = spatial_income_disparity_over_time(array, N_neighbourhoods=5, N_houses=5)
+
+plt.plot(result)
+plt.xlabel('Time Step')
+plt.ylabel('Average Spatial Income Disparity')
+plt.title('Average Spatial Income Disparity Over Time')
+plt.grid()
+plt.savefig('fig/disparity_over_time.png')
