@@ -240,16 +240,16 @@ class Household(Agent):
         neighbourhood = model.neighbourhoods[
             tuple(ti // model.N_neighbourhoods for ti in pos)
         ]
+        # If the household cannot afford the rent, it cannot move in
         if self.income < neighbourhood.rent():
-            # If the household cannot afford the rent, it cannot move in
             return 0.0
-
+            
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
 
         neighbor_positions = model.grid.get_neighborhood(
             pos, moore=True, include_center=False, radius=model.r_moore
         )
-
+            
         medians = []
         for grid_snapshot in recent_grids:
             neighbor_incomes = []
@@ -264,17 +264,9 @@ class Household(Agent):
             else:
                 medians.append(0.0)
 
-        # Calculate the sum of differences over epsilon periods
-        if len(medians) < model.epsilon + 1:
-            print("return 0.0")
-            return 0.0
-        # Calculate differences: [t-(epsilon-1)] - [t-epsilon], [t-(epsilon-2)] - [t-(epsilon-1)], ..., [t] - [t-1]
-        diffs = []
-        for i in range(model.epsilon):
-            diff = medians[i + 1] - medians[i]  # newer - older
-            diffs.append(diff)
-
-        average_growth_rate_local = sum(diffs) / model.epsilon
+        # Local average income growth
+        diffs_local = np.diff(medians)
+        avg_growth_local = np.mean(diffs_local)
 
         recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
 
@@ -289,11 +281,10 @@ class Household(Agent):
                 ]
             )
             diffs_global.append(diff_global)
-        average_growth_rate_global = sum(diffs_global) / model.epsilon
-        return (
-            model.b * average_growth_rate_global
-            + (1 - model.b) * average_growth_rate_local
-        )
+        avg_growth_global = np.mean(diffs_global)
+
+        # Weighted average of local and global growth rates
+        return model.b * avg_growth_global + (1 - model.b) * avg_growth_local
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
         """
