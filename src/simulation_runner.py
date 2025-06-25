@@ -19,12 +19,23 @@ def single_run(
     r_moore,
     sensitivity_param,
     rent_factor,
-    steps,
+    income_distribution=None,
+    income_bounds=[1, 24.000, 71.200, 100.001],
     output_path="data/agent_data.csv",
     save_data=True,
 ):
     gentsim = GentSimModel(
-        n_agents, n_neighborhoods, n_houses, epsilon, p_h, b, r_moore, sensitivity_param, rent_factor
+        N_agents=n_agents,
+        N_neighbourhoods=n_neighborhoods,
+        N_houses=n_houses,
+        income_distribution=income_distribution,
+        income_bounds=income_bounds,
+        epsilon=epsilon,
+        p_h=p_h,
+        b=b,
+        r_moore=r_moore,
+        sensitivity_param=sensitivity_param,
+        rent_factor=rent_factor,
     )
 
     for step in range(steps):
@@ -52,6 +63,8 @@ def multiple_runs(
     sensitivity_param,
     rent_factor,
     steps,
+    income_distribution=None,
+    income_bounds=[1, 24.000, 71.200, 100.001],
     runs=10,
     output_path="data/combined_agent_data.csv",
 ):
@@ -84,6 +97,8 @@ def multiple_runs(
             sensitivity_param,
             rent_factor,
             steps,
+            income_distribution,
+            income_bounds,
             save_data=False,
         )
         all_data.append(agent_df)
@@ -107,15 +122,15 @@ def parameter_sweep(n_agents, n_neighborhoods, n_houses, steps, runs, n_samples)
     """
     # Define the parameter space
     problem = {
-        'num_vars': 5,
-        'names': ['epsilon', 'p_h', 'b', 'r_moore', 'sensitivity_param'],
-        'bounds': [
-            [0, 10],       # epsilon (integer)
-            [0.01, 0.3],   # p_h (probability)
-            [0.0, 1.0],    # b (bounded float)
-            [1, 3],        # r_moore (Moore radius, integer)
-            [1, 10]        # sensitivity_param (weighing factor, integer)
-        ]
+        "num_vars": 5,
+        "names": ["epsilon", "p_h", "b", "r_moore", "sensitivity_param"],
+        "bounds": [
+            [0, 10],  # epsilon (integer)
+            [0.01, 0.3],  # p_h (probability)
+            [0.0, 1.0],  # b (bounded float)
+            [1, 3],  # r_moore (Moore radius, integer)
+            [1, 10],  # sensitivity_param (weighing factor, integer)
+        ],
     }
 
     # Generate parameter combinations using Saltelli sampling

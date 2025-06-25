@@ -10,7 +10,8 @@ class Household(Agent):
     def __init__(self, model: Model, income: int) -> None:
         super().__init__(model)
         self.income = income
-        self.income_bin = get_income_bin(income)
+        self.income_bin = get_income_bin(income, model.income_bounds)
+        self.neighbourhood = None
 
     def step(self, model: Model) -> None:
         """
@@ -86,7 +87,7 @@ class Household(Agent):
             if not new_location:
                 return
             self.move(model, new_location)
-    
+
     def kill(self, model):
         """
         Remove the household from the model.
@@ -111,9 +112,10 @@ class Household(Agent):
         new_income = int(neighbourhood.rent() * 1.5)
         neighbourhood.total_income += new_income - self.income
         self.income = new_income
-        self.income_bin = get_income_bin(new_income)
-        print(f"Household at {self.pos} has been replaced with new income {self.income}.")
-
+        self.income_bin = get_income_bin(new_income, model.income_bounds)
+        print(
+            f"Household at {self.pos} has been replaced with new income {self.income}."
+        )
 
     def move(self, model, location):
         """
@@ -143,6 +145,8 @@ class Household(Agent):
         new_neighbourhood.total_income += self.income
         old_neighbourhood.total_income -= self.income
 
+        self.neighbourhood = new_neighbourhood
+
         model.grid.move_agent(self, location)
 
     def income_percentile(self, model, target) -> float:
@@ -157,8 +161,8 @@ class Household(Agent):
         local_total = sum([n.income for n in local_neighbours])
         local_ip = self.income / (local_total + self.income)
 
-        chunk_total = model.neighbourhoods[target[0] // model.N_neighbourhoods,
-                                    target[1] // model.N_neighbourhoods
+        chunk_total = model.neighbourhoods[
+            target[0] // model.N_neighbourhoods, target[1] // model.N_neighbourhoods
         ].total_income
 
         if (
@@ -174,7 +178,7 @@ class Household(Agent):
         ip = b * chunk_ip + (1 - b) * local_ip
         assert 0 <= ip <= 1, (
             f"Income percentile must be between 0 and 1 but got {ip}: b={b}, chunk_ip={chunk_ip}, local_ip={local_ip}, income={self.income}, chunk_total={chunk_total}, local_total={local_total}"
-            )
+        )
         return ip
 
     def move_out_low(self, model, pos) -> float:
@@ -232,7 +236,7 @@ class Household(Agent):
         if len(model.grid_history) < model.epsilon + 1:
             # print("Not enough history for high income to calculate phi^epsilon(t)")
             return 0.0
-        
+
         neighbourhood = model.neighbourhoods[
             tuple(ti // model.N_neighbourhoods for ti in pos)
         ]
@@ -274,15 +278,22 @@ class Household(Agent):
 
         recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
 
-        
         diffs_global = []
         for i in range(model.epsilon):
-            diff_global = recent_neighbourhoods[i + 1][pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods] - \
-                          recent_neighbourhoods[i][pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods]
+            diff_global = (
+                recent_neighbourhoods[i + 1][
+                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
+                ]
+                - recent_neighbourhoods[i][
+                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
+                ]
+            )
             diffs_global.append(diff_global)
         average_growth_rate_global = sum(diffs_global) / model.epsilon
-        return model.b * average_growth_rate_global + (1 - model.b) * average_growth_rate_local
-
+        return (
+            model.b * average_growth_rate_global
+            + (1 - model.b) * average_growth_rate_local
+        )
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
         """
@@ -313,15 +324,21 @@ class Household(Agent):
         return None
 
 
-def get_income_bin(income: float) -> str:  # Fixed return type annotation
+def get_income_bin(income: float, bins: list) -> str:  # Fixed return type annotation
     """
     Get the income bin for the given income.
     """
-    if income < 38690:
+    assert isinstance(bins, list) and len(bins) == 4, (
+        "bins must be a list of three elements"
+    )
+    low_income = bins[1]
+    medium_income = bins[2]
+
+    if income < low_income:
         return "low"
-    elif 38690 <= income < 77280:  # Fixed condition to handle edge case
+    elif low_income <= income <= medium_income:  # Fixed condition to handle edge case
         return "medium"
-    elif income >= 77280:  # Fixed condition to handle edge case
+    elif income > medium_income:  # Fixed condition to handle edge case
         return "high"
     else:
         raise ValueError("Income must be greater than 0")

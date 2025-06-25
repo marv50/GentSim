@@ -52,8 +52,8 @@ def analyze_sweep(metric, *args, **kwargs):
     Analyzes simulation results from multiple CSV files and applies a metric.
     """
 
-    directory = 'data/sweep_results'
-    files = glob.glob(os.path.join(directory, '*.csv'))
+    directory = "data/sweep_results"
+    files = glob.glob(os.path.join(directory, "*.csv"))
 
     results = []
 
