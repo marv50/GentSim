@@ -5,8 +5,8 @@ import shutil
 from itertools import product
 
 from SALib.sample import saltelli
-
 from src.model import GentSimModel
+from concurrent.futures import ProcessPoolExecutor
 
 
 def single_run(
@@ -52,9 +52,8 @@ def single_run(
 
     return agent_df
 
-
-
-
+def _single_run_wrapper(args):
+    return single_run(*args)
 
 def multiple_runs(
     n_agents,
@@ -72,11 +71,8 @@ def multiple_runs(
     income_bounds=[1, 24_000, 71_200, 100_001],
     output_path="data/combined_agent_data.csv",
 ):
-    all_data = []
-
-    for run in range(runs):
-        print(f"Running simulation {run + 1}/{runs}...")
-        agent_df = single_run(
+    run_args = [
+        (
             n_agents,
             n_neighborhoods,
             n_houses,
@@ -90,14 +86,19 @@ def multiple_runs(
             income_distribution,
             income_bounds,
             output_path,
-            save_data=False,
+            False  # save_data
         )
-        all_data.append(agent_df)
+        for _ in range(runs)
+    ]
+
+    print(f"Running {runs} simulations in parallel...")
+
+    with ProcessPoolExecutor() as executor:
+        all_data = list(executor.map(_single_run_wrapper, run_args))
 
     combined_df = pd.concat(all_data)
     combined_df.to_csv(output_path, index=True)
     print(f"Combined agent data saved to: {output_path}")
-
 
 
 def parameter_sweep(
