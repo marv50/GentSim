@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib.patches import Patch
 import pandas as pd
 import numpy as np
 
@@ -12,7 +13,7 @@ plt.style.use("bmh")
 plt.rcParams["figure.figsize"] = (12, 6)
 plt.rcParams["font.size"] = 18
 plt.rcParams["axes.labelsize"] = 18
-plt.rcParams["axes.titlesize"] = 18
+plt.rcParams["axes.titlesize"] = 20
 FIG_DPI = 300
 
 
@@ -47,6 +48,7 @@ def plot_income_distribution(
 
 def visualize_grid_evolution(
     timeseries_grid: np.ndarray,
+    n_houses: int,
     income_bounds: Optional[List[int]] = None,
     step_indices: Optional[List[int]] = None,
     figsize: Tuple[int, int] = (15, 10),
@@ -64,40 +66,60 @@ def visualize_grid_evolution(
 
     n = len(step_indices)
     cols = min(3, n)
-    rows = -(-n // cols)  # Ceiling division
+    rows = -(-n // cols)
 
     fig, axes = plt.subplots(rows, cols, figsize=figsize)
     axes = np.atleast_2d(axes).reshape(rows, cols)
 
-    # Create a ListedColormap and BoundaryNorm
     cmap = mcolors.ListedColormap(["#000000", "#1f77b4", "#2ca02c", "#ff7f0e"])
+    income_bounds.insert(0, 1)
     norm = mcolors.BoundaryNorm(income_bounds, cmap.N)
 
     for i, step_idx in enumerate(step_indices):
         ax = axes[i // cols, i % cols]
         grid = timeseries_grid[step_idx]
         height, width = grid.shape
-        im = ax.imshow(
+
+        _ = ax.imshow(
             grid,
             cmap=cmap,
             norm=norm,
             origin="lower",
-            extent=[0, width, 0, height],  # Align to corners
+            extent=[0, width, 0, height],
             interpolation="none",
         )
+
+        ax.set_xticks(np.arange(0, width + 1, n_houses))
+        ax.set_yticks(np.arange(0, height + 1, n_houses))
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.grid(which="both", color="white", linestyle="--", linewidth=1)
+
         ax.set_title(f"Step {step_idx + 1}")
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
-        plt.colorbar(im, ax=ax)
 
-    # Turn off unused subplots
     for j in range(n, rows * cols):
         axes[j // cols, j % cols].axis("off")
 
+    legend_elements = [
+        Patch(facecolor="#000000", label="empty houses"),
+        Patch(facecolor="#1f77b4", label="low income"),
+        Patch(facecolor="#2ca02c", label="medium income"),
+        Patch(facecolor="#ff7f0e", label="high income"),
+    ]
+    fig.legend(
+        handles=legend_elements,
+        loc="upper right",
+        bbox_to_anchor=(1.15, 0.9),
+        frameon=True,
+        fontsize="medium",
+    )
+    fig.suptitle("Evolution of Income on the Grid Overtime", fontsize=20)
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=FIG_DPI)
+        plt.savefig(save_path, dpi=FIG_DPI, bbox_inches="tight")
         print(f"Plot saved to: {save_path}")
     else:
         plt.show()

@@ -4,11 +4,12 @@ from src.simulation_runner import single_run
 
 if __name__ == "__main__":
     bins = [1, 24_000, 71_200, 100_001]
+    n_houses = 5
 
     single_run(
         n_agents=300,
         n_neighborhoods=5,
-        n_houses=5,
+        n_houses=n_houses,
         epsilon=8,
         p_h=0.8,
         b=0.5,
@@ -42,5 +43,8 @@ if __name__ == "__main__":
 
     # Plot
     visualize_grid_evolution(
-        income_grids, income_bounds=bins, save_path="fig/income_grid_evolution.png"
+        income_grids,
+        n_houses=n_houses,
+        income_bounds=bins,
+        save_path="fig/income_grid_evolution.png",
     )
