@@ -1,8 +1,9 @@
 ipython~=9.3.0
 mesa~=3.2.0
-numpy~=2.3.0
 pandas~=2.3.0
 matplotlib~=3.10.3
+numpy~=2.2.6
+numba~=0.61.2
 salib~=1.5.1
 scipy~=1.15.3
 seaborn~=0.13.2
