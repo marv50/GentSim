@@ -1,5 +1,6 @@
 import os
 import glob
+import re
 import numpy as np
 
 from src.csv_converter import multiple_run_grid
@@ -145,18 +146,24 @@ def spatial_income_disparity_over_time(income_data, N_neighbourhoods, N_houses):
 
 def analyze_sweep(metric, *args, **kwargs):
     """
-    Analyzes simulation results from multiple CSV files and applies a metric.
+    Analyzes simulation results from multiple CSV files in correct numerical order,
+    applying the given metric to each.
     """
-
     directory = "data/sweep_results"
     files = glob.glob(os.path.join(directory, "*.csv"))
 
+    # Sort numerically by extracting the number from the filename
+    def extract_index(filepath):
+        match = re.search(r'parameter_sweep_(\d+)\.csv', os.path.basename(filepath))
+        return int(match.group(1)) if match else float('inf')
+
+    files_sorted = sorted(files, key=extract_index)
+
     results = []
 
-    for file_path in files:
+    for file_path in files_sorted:
         print(f"Processing file: {file_path}")
 
-        # Pass the file path to your conversion function
         simulation_data = multiple_run_grid(file_path)
         result = metric(simulation_data, *args, **kwargs)
         results.append(result)
