@@ -113,7 +113,6 @@ class Household(Agent):
         neighbourhood.total_income += new_income - self.income
         self.income = new_income
         self.income_bin = get_income_bin(new_income, model.income_bounds)
-        
 
     def move(self, model, location):
         """
@@ -146,7 +145,6 @@ class Household(Agent):
         self.neighbourhood = new_neighbourhood
 
         model.grid.move_agent(self, location)
-
 
     def income_percentile(self, model, target) -> float:
         """
@@ -189,7 +187,6 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-
     def move_out_medium(self, model, pos):
         """
         Calculate the probability of moving out based on the income percentile.
@@ -197,7 +194,6 @@ class Household(Agent):
         p = 4 * (self.income_percentile(model, pos) - 0.5) ** model.sensitivity_param
         assert 0 <= p <= 1
         return p
-
 
     def move_in_low(self, model, pos) -> float:
         """
@@ -214,7 +210,6 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-
     def move_in_medium(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
@@ -229,8 +224,6 @@ class Household(Agent):
         p = 1 - self.move_out_medium(model, pos)
         # assert 0 <= p <= np.sqrt(gamma)
         return p
-    
-
 
     def move_in_high(self, model, pos) -> float:
         """
@@ -240,20 +233,25 @@ class Household(Agent):
         if len(model.grid_history) < model.epsilon + 1:
             return 0.0
 
-        nhood_x, nhood_y = pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
+        nhood_x, nhood_y = (
+            pos[0] // model.N_neighbourhoods,
+            pos[1] // model.N_neighbourhoods,
+        )
         neighbourhood = model.neighbourhoods[(nhood_x, nhood_y)]
 
         if self.income < neighbourhood.rent():
             return 0.0
 
         # Get recent grids and stack into one 3D NumPy array: (T, X, Y)
-        recent_grids = model.grid_history[-(model.epsilon + 1):]
+        recent_grids = model.grid_history[-(model.epsilon + 1) :]
         stacked_grids = np.stack(recent_grids)  # shape: (epsilon+1, width, height)
 
         # Get neighbor coordinates as arrays
-        neighbor_positions = np.array(model.grid.get_neighborhood(
-            pos, moore=True, include_center=False, radius=model.r_moore
-        ))
+        neighbor_positions = np.array(
+            model.grid.get_neighborhood(
+                pos, moore=True, include_center=False, radius=model.r_moore
+            )
+        )
         xs, ys = neighbor_positions[:, 0], neighbor_positions[:, 1]
 
         # Fast median computation
@@ -263,13 +261,12 @@ class Household(Agent):
 
         # Global neighborhood differences
         x_idx, y_idx = nhood_x, nhood_y
-        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1):]
+        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
         global_values = [nh[x_idx, y_idx] for nh in recent_neighbourhoods]
         diffs_global = np.diff(global_values)
         avg_growth_global = np.mean(diffs_global) if len(diffs_global) > 0 else 0.0
 
         return model.b * avg_growth_global + (1 - model.b) * avg_growth_local
-
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
         """
@@ -319,12 +316,13 @@ def get_income_bin(income: float, bins: list) -> str:  # Fixed return type annot
     else:
         raise ValueError("Income must be greater than 0")
 
+
 @njit
 def compute_neighbor_medians(recent_grids, xs, ys):
     T = recent_grids.shape[0]
     n = xs.shape[0]
     medians = np.empty(T)
-    
+
     for t in range(T):
         values = []
         for i in range(n):
