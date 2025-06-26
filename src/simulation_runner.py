@@ -115,10 +115,10 @@ def parameter_sweep(
         "num_vars": 5,
         "names": ["epsilon", "p_h", "b", "r_moore", "rent_factor"],
         "bounds": [
-            [0, 10],       # epsilon
+            [5, 10],       # epsilon
             [0.01, 0.3],   # p_h
             [0.0, 1.0],    # b
-            [1, 3],        # r_moore
+            [1, 2],        # r_moore
             [0.5, 0.9],    # rent_factor
         ],
     }
