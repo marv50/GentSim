@@ -249,13 +249,13 @@ class Household(Agent):
         # If the household cannot afford the rent, it cannot move in
         if self.income < neighbourhood.rent():
             return 0.0
-            
+
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
 
         neighbor_positions = model.grid.get_neighborhood(
             pos, moore=True, include_center=False, radius=model.r_moore
         )
-            
+
         medians = []
         for grid_snapshot in recent_grids:
             neighbor_incomes = []

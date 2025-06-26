@@ -3,6 +3,8 @@ from src.csv_converter import *
 from src.simulation_runner import single_run
 
 if __name__ == "__main__":
+    bins = [1, 24_000, 71_200, 100_001]
+
     single_run(
         n_agents=300,
         n_neighborhoods=5,
@@ -14,6 +16,7 @@ if __name__ == "__main__":
         sensitivity_param=2,
         steps=50,
         rent_factor=0.6,
+        income_bounds=bins,
     )
 
     plot_income_distribution(
@@ -38,4 +41,6 @@ if __name__ == "__main__":
     print(f"Income range: {income_grids.min()} - {income_grids.max()}")
 
     # Plot
-    visualize_grid_evolution(income_grids, save_path="fig/income_grid_evolution.png")
+    visualize_grid_evolution(
+        income_grids, income_bounds=bins, save_path="fig/income_grid_evolution.png"
+    )

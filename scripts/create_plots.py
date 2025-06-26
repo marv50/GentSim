@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import pandas as pd
 import numpy as np
 
@@ -44,18 +45,22 @@ def plot_income_distribution(
         plt.show()
 
 
-def visualize_grid_evolution(timeseries_grid: np.ndarray,
-                             step_indices: Optional[List[int]] = None,
-                             figsize: Tuple[int, int] = (15, 10),
-                             save_path: Optional[str] = None):
+def visualize_grid_evolution(
+    timeseries_grid: np.ndarray,
+    income_bounds: Optional[List[int]] = None,
+    step_indices: Optional[List[int]] = None,
+    figsize: Tuple[int, int] = (15, 10),
+    save_path: Optional[str] = None,
+):
     if save_path:
-        matplotlib.use('Agg')
+        matplotlib.use("Agg")
 
     total_steps = timeseries_grid.shape[0]
     if step_indices is None:
         num_snapshots = min(6, total_steps)
-        step_indices = np.linspace(0, total_steps - 1, num=num_snapshots, dtype=int).tolist()
-
+        step_indices = np.linspace(
+            0, total_steps - 1, num=num_snapshots, dtype=int
+        ).tolist()
 
     n = len(step_indices)
     cols = min(3, n)
@@ -64,32 +69,35 @@ def visualize_grid_evolution(timeseries_grid: np.ndarray,
     fig, axes = plt.subplots(rows, cols, figsize=figsize)
     axes = np.atleast_2d(axes).reshape(rows, cols)
 
-    import matplotlib.colors as mcolors
-
-    # Define the bins
-    bounds = [0, 1, 38690, 77280, 100000]
-    labels = ['empty', 'low', 'medium', 'high']
-
     # Create a ListedColormap and BoundaryNorm
-    cmap = mcolors.ListedColormap(['#000000','#1f77b4', '#2ca02c', '#ff7f0e'])
-    norm = mcolors.BoundaryNorm(bounds, cmap.N)
+    cmap = mcolors.ListedColormap(["#000000", "#1f77b4", "#2ca02c", "#ff7f0e"])
+    norm = mcolors.BoundaryNorm(income_bounds, cmap.N)
 
     for i, step_idx in enumerate(step_indices):
         ax = axes[i // cols, i % cols]
-        im = ax.imshow(timeseries_grid[step_idx],
-                       cmap=cmap, norm=norm, origin='lower')
-        ax.set_title(f"Step {step_idx}")
+        grid = timeseries_grid[step_idx]
+        height, width = grid.shape
+        im = ax.imshow(
+            grid,
+            cmap=cmap,
+            norm=norm,
+            origin="lower",
+            extent=[0, width, 0, height],  # Align to corners
+            interpolation="none",
+        )
+        ax.set_title(f"Step {step_idx + 1}")
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         plt.colorbar(im, ax=ax)
 
+    # Turn off unused subplots
     for j in range(n, rows * cols):
-        axes[j // cols, j % cols].axis('off')
+        axes[j // cols, j % cols].axis("off")
 
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=200)
+        plt.savefig(save_path, dpi=FIG_DPI)
         print(f"Plot saved to: {save_path}")
     else:
         plt.show()

@@ -23,7 +23,7 @@ class GentSimModel(Model):
         N_neighbourhoods: int = 5,
         N_houses: int = 5,
         income_distribution: None | list = None,
-        income_bounds: list = [1, 24.000, 71.200, 100.001],
+        income_bounds: list = [1, 24_000, 71_200, 100_001],
         epsilon: int = 1,
         p_h: int = 0.5,
         b: float = 0.5,
