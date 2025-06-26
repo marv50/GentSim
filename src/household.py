@@ -150,7 +150,7 @@ class Household(Agent):
 
         model.grid.move_agent(self, location)
 
-    @njit
+
     def income_percentile(self, model, target) -> float:
         """
         Calculate the income percentile of the household.
@@ -183,7 +183,6 @@ class Household(Agent):
         )
         return ip
 
-    @njit
     def move_out_low(self, model, pos) -> float:
         """
         Calculate the probability of moving out based on the income percentile.
@@ -193,7 +192,7 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-    @njit
+
     def move_out_medium(self, model, pos):
         """
         Calculate the probability of moving out based on the income percentile.
@@ -202,7 +201,7 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-    @njit
+
     def move_in_low(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
@@ -218,7 +217,7 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-    @njit
+
     def move_in_medium(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
