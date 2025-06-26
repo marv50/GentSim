@@ -102,7 +102,6 @@ class Household(Agent):
         assert bool(model.empty_houses[self.pos]) is True, "Position must be empty"
         assert neighbourhood.residents >= 0, "Residents must be non-negative"
         assert neighbourhood.total_income >= 0, "Total income must be non-negative"
-        print(f"Household at {self.pos} with income {self.income} has been removed.")
         model.grid.remove_agent(self)
         self.remove()
 
@@ -114,9 +113,7 @@ class Household(Agent):
         neighbourhood.total_income += new_income - self.income
         self.income = new_income
         self.income_bin = get_income_bin(new_income, model.income_bounds)
-        print(
-            f"Household at {self.pos} has been replaced with new income {self.income}."
-        )
+        
 
     def move(self, model, location):
         """
@@ -261,14 +258,18 @@ class Household(Agent):
 
         # Fast median computation
         medians = compute_neighbor_medians(stacked_grids, xs, ys)
-        avg_growth_local = np.mean(np.diff(medians))
+        diffs_local = np.diff(medians)
+        avg_growth_local = np.mean(diffs_local) if len(diffs_local) > 0 else 0.0
 
         # Global neighborhood differences
         x_idx, y_idx = nhood_x, nhood_y
         recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1):]
         global_values = [nh[x_idx, y_idx] for nh in recent_neighbourhoods]
-        avg_growth_global = np.mean(np.diff(global_values))
+        diffs_global = np.diff(global_values)
+        avg_growth_global = np.mean(diffs_global) if len(diffs_global) > 0 else 0.0
+
         return model.b * avg_growth_global + (1 - model.b) * avg_growth_local
+
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
         """
