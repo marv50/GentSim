@@ -6,22 +6,24 @@ from matplotlib import pyplot as plt
 
 # Definer number of parameters examined for the SA
 
-n_agents = 300
-n_neighborhoods = 5
-n_houses = 5
-steps = 50
-runs = 10
-n_samples = 1
+if __name__ == "__main__":
+    # Set the random seed for reproducibility
+    n_agents = 300
+    n_neighborhoods = 5
+    n_houses = 5
+    steps = 50
+    runs = 10
+    n_samples = 1
 
-parameter_sweep(
-    n_agents,
-    n_neighborhoods,
-    n_houses,
-    steps,
-    runs,
-    n_samples
-)
+    parameter_sweep(
+        n_agents,
+        n_neighborhoods,
+        n_houses,
+        steps,
+        runs,
+        n_samples
+    )
 
-results = analyze_sweep(spatial_income_disparity, n_neighborhoods, n_houses)
-print("Shape of results:", results.shape)
-print("Results:", results)
+    results = analyze_sweep(spatial_income_disparity, n_neighborhoods, n_houses)
+    print("Shape of results:", results.shape)
+    print("Results:", results)
