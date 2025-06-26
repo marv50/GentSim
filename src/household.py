@@ -102,7 +102,6 @@ class Household(Agent):
         assert bool(model.empty_houses[self.pos]) is True, "Position must be empty"
         assert neighbourhood.residents >= 0, "Residents must be non-negative"
         assert neighbourhood.total_income >= 0, "Total income must be non-negative"
-        print(f"Household at {self.pos} with income {self.income} has been removed.")
         model.grid.remove_agent(self)
         self.remove()
 
@@ -114,9 +113,6 @@ class Household(Agent):
         neighbourhood.total_income += new_income - self.income
         self.income = new_income
         self.income_bin = get_income_bin(new_income, model.income_bounds)
-        print(
-            f"Household at {self.pos} has been replaced with new income {self.income}."
-        )
 
     def move(self, model, location):
         """
@@ -150,7 +146,6 @@ class Household(Agent):
 
         model.grid.move_agent(self, location)
 
-    @njit
     def income_percentile(self, model, target) -> float:
         """
         Calculate the income percentile of the household.
@@ -183,7 +178,6 @@ class Household(Agent):
         )
         return ip
 
-    @njit
     def move_out_low(self, model, pos) -> float:
         """
         Calculate the probability of moving out based on the income percentile.
@@ -193,7 +187,6 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-    @njit
     def move_out_medium(self, model, pos):
         """
         Calculate the probability of moving out based on the income percentile.
@@ -202,7 +195,6 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-    @njit
     def move_in_low(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
@@ -218,7 +210,6 @@ class Household(Agent):
         assert 0 <= p <= 1
         return p
 
-    @njit
     def move_in_medium(self, model, pos) -> float:
         """
         Calculate the probability of moving in based on the income percentile.
@@ -240,56 +231,41 @@ class Household(Agent):
         income households to move in somewhere else.
         """
         if len(model.grid_history) < model.epsilon + 1:
-            # print("Not enough history for high income to calculate phi^epsilon(t)")
             return 0.0
 
-        neighbourhood = model.neighbourhoods[
-            tuple(ti // model.N_neighbourhoods for ti in pos)
-        ]
-        # If the household cannot afford the rent, it cannot move in
+        nhood_x, nhood_y = (
+            pos[0] // model.N_neighbourhoods,
+            pos[1] // model.N_neighbourhoods,
+        )
+        neighbourhood = model.neighbourhoods[(nhood_x, nhood_y)]
+
         if self.income < neighbourhood.rent():
             return 0.0
 
+        # Get recent grids and stack into one 3D NumPy array: (T, X, Y)
         recent_grids = model.grid_history[-(model.epsilon + 1) :]
+        stacked_grids = np.stack(recent_grids)  # shape: (epsilon+1, width, height)
 
-        neighbor_positions = model.grid.get_neighborhood(
-            pos, moore=True, include_center=False, radius=model.r_moore
-        )
-
-        medians = []
-        for grid_snapshot in recent_grids:
-            neighbor_incomes = []
-            for neighbor_pos in neighbor_positions:
-                x, y = neighbor_pos
-                income = grid_snapshot[x, y]
-                if income > 0:  # Only include occupied cells
-                    neighbor_incomes.append(income)
-
-            if neighbor_incomes:
-                medians.append(np.median(neighbor_incomes))
-            else:
-                medians.append(0.0)
-
-        # Local average income growth
-        diffs_local = np.diff(medians)
-        avg_growth_local = np.mean(diffs_local)
-
-        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
-
-        diffs_global = []
-        for i in range(model.epsilon):
-            diff_global = (
-                recent_neighbourhoods[i + 1][
-                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
-                ]
-                - recent_neighbourhoods[i][
-                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
-                ]
+        # Get neighbor coordinates as arrays
+        neighbor_positions = np.array(
+            model.grid.get_neighborhood(
+                pos, moore=True, include_center=False, radius=model.r_moore
             )
-            diffs_global.append(diff_global)
-        avg_growth_global = np.mean(diffs_global)
+        )
+        xs, ys = neighbor_positions[:, 0], neighbor_positions[:, 1]
 
-        # Weighted average of local and global growth rates
+        # Fast median computation
+        medians = compute_neighbor_medians(stacked_grids, xs, ys)
+        diffs_local = np.diff(medians)
+        avg_growth_local = np.mean(diffs_local) if len(diffs_local) > 0 else 0.0
+
+        # Global neighborhood differences
+        x_idx, y_idx = nhood_x, nhood_y
+        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
+        global_values = [nh[x_idx, y_idx] for nh in recent_neighbourhoods]
+        diffs_global = np.diff(global_values)
+        avg_growth_global = np.mean(diffs_global) if len(diffs_global) > 0 else 0.0
+
         return model.b * avg_growth_global + (1 - model.b) * avg_growth_local
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
@@ -339,3 +315,22 @@ def get_income_bin(income: float, bins: list) -> str:  # Fixed return type annot
         return "high"
     else:
         raise ValueError("Income must be greater than 0")
+
+
+@njit
+def compute_neighbor_medians(recent_grids, xs, ys):
+    T = recent_grids.shape[0]
+    n = xs.shape[0]
+    medians = np.empty(T)
+
+    for t in range(T):
+        values = []
+        for i in range(n):
+            val = recent_grids[t, xs[i], ys[i]]
+            if val > 0:
+                values.append(val)
+        if len(values) > 0:
+            medians[t] = np.median(np.array(values))
+        else:
+            medians[t] = 0.0
+    return medians

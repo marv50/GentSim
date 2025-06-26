@@ -21,7 +21,7 @@ def single_run(
     sensitivity_param,
     steps,
     income_distribution=None,
-    income_bounds=[1, 24.000, 71.200, 100.001],
+    income_bounds=[1, 24_000, 71_200, 100_001],
     output_path="data/agent_data.csv",
     save_data=True,
 ):
@@ -40,7 +40,8 @@ def single_run(
     )
 
     for step in range(steps):
-        print(f"Running step {step + 1}/{steps}...")
+        if (step % 10 == 0) or step == 0:
+            print(f"Running step {step + 1}/{steps}...")
         gentsim.step()
 
     agent_df = gentsim.datacollector.get_agent_vars_dataframe()
@@ -50,6 +51,7 @@ def single_run(
         print(f"Agent data saved to: {output_path}")
 
     return agent_df
+
 
 
 
@@ -67,7 +69,7 @@ def multiple_runs(
     steps,
     runs,
     income_distribution=None,
-    income_bounds=[1, 24.000, 71.200, 100.001],
+    income_bounds=[1, 24_000, 71_200, 100_001],
     output_path="data/combined_agent_data.csv",
 ):
     all_data = []
@@ -129,10 +131,11 @@ def parameter_sweep(
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
 
-    print(f"\nGenerated {len(param_values)} parameter sets using SALib.")
+    total_runs = len(param_values)
+    print(f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
 
     for i, (epsilon, p_h, b, r_moore, rent_factor) in enumerate(param_values):
-        print(f"\n=== Running SALib sweep {i + 1}/{len(param_values)} ===")
+        print(f"=== Running SALib sweep {i + 1} of {total_runs} ===")
 
         filename = f"parameter_sweep_{i + 1}.csv"
         output_path = os.path.join(output_dir, filename)
@@ -155,5 +158,6 @@ def parameter_sweep(
         )
 
     print("\n✅ SALib parameter sweep completed.")
+
 
 
