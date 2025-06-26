@@ -233,6 +233,8 @@ class Household(Agent):
         p = 1 - self.move_out_medium(model, pos)
         # assert 0 <= p <= np.sqrt(gamma)
         return p
+    
+
 
     def move_in_high(self, model, pos) -> float:
         """
@@ -240,56 +242,33 @@ class Household(Agent):
         income households to move in somewhere else.
         """
         if len(model.grid_history) < model.epsilon + 1:
-            # print("Not enough history for high income to calculate phi^epsilon(t)")
             return 0.0
 
-        neighbourhood = model.neighbourhoods[
-            tuple(ti // model.N_neighbourhoods for ti in pos)
-        ]
-        # If the household cannot afford the rent, it cannot move in
+        nhood_x, nhood_y = pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
+        neighbourhood = model.neighbourhoods[(nhood_x, nhood_y)]
+
         if self.income < neighbourhood.rent():
             return 0.0
-            
-        recent_grids = model.grid_history[-(model.epsilon + 1) :]
 
-        neighbor_positions = model.grid.get_neighborhood(
+        # Get recent grids and stack into one 3D NumPy array: (T, X, Y)
+        recent_grids = model.grid_history[-(model.epsilon + 1):]
+        stacked_grids = np.stack(recent_grids)  # shape: (epsilon+1, width, height)
+
+        # Get neighbor coordinates as arrays
+        neighbor_positions = np.array(model.grid.get_neighborhood(
             pos, moore=True, include_center=False, radius=model.r_moore
-        )
-            
-        medians = []
-        for grid_snapshot in recent_grids:
-            neighbor_incomes = []
-            for neighbor_pos in neighbor_positions:
-                x, y = neighbor_pos
-                income = grid_snapshot[x, y]
-                if income > 0:  # Only include occupied cells
-                    neighbor_incomes.append(income)
+        ))
+        xs, ys = neighbor_positions[:, 0], neighbor_positions[:, 1]
 
-            if neighbor_incomes:
-                medians.append(np.median(neighbor_incomes))
-            else:
-                medians.append(0.0)
+        # Fast median computation
+        medians = compute_neighbor_medians(stacked_grids, xs, ys)
+        avg_growth_local = np.mean(np.diff(medians))
 
-        # Local average income growth
-        diffs_local = np.diff(medians)
-        avg_growth_local = np.mean(diffs_local)
-
-        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1) :]
-
-        diffs_global = []
-        for i in range(model.epsilon):
-            diff_global = (
-                recent_neighbourhoods[i + 1][
-                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
-                ]
-                - recent_neighbourhoods[i][
-                    pos[0] // model.N_neighbourhoods, pos[1] // model.N_neighbourhoods
-                ]
-            )
-            diffs_global.append(diff_global)
-        avg_growth_global = np.mean(diffs_global)
-
-        # Weighted average of local and global growth rates
+        # Global neighborhood differences
+        x_idx, y_idx = nhood_x, nhood_y
+        recent_neighbourhoods = model.neighbourhood_history[-(model.epsilon + 1):]
+        global_values = [nh[x_idx, y_idx] for nh in recent_neighbourhoods]
+        avg_growth_global = np.mean(np.diff(global_values))
         return model.b * avg_growth_global + (1 - model.b) * avg_growth_local
 
     def move_in(self, model, utility_func, **kwargs) -> tuple:
@@ -339,3 +318,21 @@ def get_income_bin(income: float, bins: list) -> str:  # Fixed return type annot
         return "high"
     else:
         raise ValueError("Income must be greater than 0")
+
+@njit
+def compute_neighbor_medians(recent_grids, xs, ys):
+    T = recent_grids.shape[0]
+    n = xs.shape[0]
+    medians = np.empty(T)
+    
+    for t in range(T):
+        values = []
+        for i in range(n):
+            val = recent_grids[t, xs[i], ys[i]]
+            if val > 0:
+                values.append(val)
+        if len(values) > 0:
+            medians[t] = np.median(np.array(values))
+        else:
+            medians[t] = 0.0
+    return medians

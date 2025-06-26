@@ -21,7 +21,7 @@ def single_run(
     sensitivity_param,
     steps,
     income_distribution=None,
-    income_bounds=[1, 24.000, 71.200, 100.001],
+    income_bounds=[1, 24_000, 71_200, 100_001],
     output_path="data/agent_data.csv",
     save_data=True,
 ):
@@ -69,7 +69,7 @@ def multiple_runs(
     steps,
     runs,
     income_distribution=None,
-    income_bounds=[1, 24.000, 71.200, 100.001],
+    income_bounds=[1, 24_000, 71_200, 100_001],
     output_path="data/combined_agent_data.csv",
 ):
     all_data = []
