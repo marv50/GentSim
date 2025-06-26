@@ -123,3 +123,32 @@ def visualize_grid_evolution(
         print(f"Plot saved to: {save_path}")
     else:
         plt.show()
+
+def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_path='fig/disparity_over_time.png'):
+    """
+    Plots and saves the average spatial income disparity over time, with optional uncertainty shading.
+
+    Parameters:
+    - disparity_values (list or np.array): The average disparity values over time (1D).
+    - uncertainty (list or np.array, optional): The std or SEM for each time step (same length as disparity_values).
+    - output_path (str): File path to save the plot (including filename).
+    """
+    disparity_values = np.array(disparity_values)
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(disparity_values, label='Mean Disparity', color='blue')
+
+    if uncertainty is not None:
+        uncertainty = np.array(uncertainty)
+        lower = disparity_values - uncertainty
+        upper = disparity_values + uncertainty
+        plt.fill_between(np.arange(len(disparity_values)), lower, upper, color='blue', alpha=0.3, label='Uncertainty')
+
+    plt.xlabel('Time Step')
+    plt.ylabel('Income Disparity')
+    plt.title('Average Spatial Income Disparity Over Time')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()

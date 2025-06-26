@@ -85,63 +85,55 @@ def spatial_income_disparity(income_data, N_neighbourhoods, N_houses):
     return np.mean(diffs)
 
 
-def spatial_income_disparity_over_time(income_data, N_neighbourhoods, N_houses):
+def spatial_income_disparity_over_time(income_data, N_neighbourhoods, N_houses, return_sem=True):
     """
-    Computes the average (max - min) neighborhood income at each timestep across all runs.
+    Computes the average (max - min) neighborhood income at each timestep across all runs,
+    and optionally returns the standard deviation or standard error.
 
     Parameters:
-        income_data (np.ndarray): 4D array of shape (n_runs, n_steps, width, height)
-        N_neighbourhoods (int): Number of neighborhoods along one axis
-        N_houses (int): Size of neighborhood block
+        income_data (np.ndarray): Shape (n_runs, n_steps, width, height)
+        N_neighbourhoods (int): Number of neighborhoods per axis
+        N_houses (int): Number of houses per neighborhood side
+        return_sem (bool): If True, return standard error; else return standard deviation
 
     Returns:
-        np.ndarray: 1D array of average max-min neighborhood income difference for each timestep
+        mean_disparities (np.ndarray): Mean disparity per timestep (shape: n_steps)
+        uncertainty (np.ndarray): Std or SEM per timestep (shape: n_steps)
     """
     n_runs, n_steps, height, width = income_data.shape
-
-    # Verify dimensions match expectations
     expected_size = N_neighbourhoods * N_houses
     if height != expected_size or width != expected_size:
-        raise ValueError(f"Grid size ({height}x{width}) doesn't match "
-                         f"expected {expected_size}x{expected_size}")
+        raise ValueError(f"Grid size ({height}x{width}) doesn't match expected {expected_size}x{expected_size}")
 
-    disparity_over_time = []
+    mean_disparities = []
+    uncertainties = []
 
-    # Loop through each timestep
     for step in range(n_steps):
-        # shape: (n_runs, width, height)
         step_frames = income_data[:, step, :, :]
         step_diffs = []
 
-        # Loop through each run at this timestep
         for frame in step_frames:
             neighborhood_means = []
-
-            # Calculate mean income for each neighborhood
             for i in range(N_neighbourhoods):
                 for j in range(N_neighbourhoods):
                     start_i, end_i = i * N_houses, (i + 1) * N_houses
                     start_j, end_j = j * N_houses, (j + 1) * N_houses
-
                     block = frame[start_i:end_i, start_j:end_j]
-
                     if block.size == 0:
-                        raise ValueError(
-                            f"Empty block at neighborhood ({i}, {j}) at step {step}")
-
+                        raise ValueError(f"Empty block at neighborhood ({i}, {j}) at step {step}")
                     neighborhood_means.append(np.mean(block))
 
-            if len(neighborhood_means) == 0:
-                raise ValueError(f"No neighborhoods found at step {step}")
-
-            # Calculate disparity for this run at this timestep
             disparity = max(neighborhood_means) - min(neighborhood_means)
             step_diffs.append(disparity)
 
-        # Average disparity across all runs for this timestep
-        disparity_over_time.append(np.mean(step_diffs))
+        step_diffs = np.array(step_diffs)
+        mean_disparities.append(np.mean(step_diffs))
+        if return_sem:
+            uncertainties.append(np.std(step_diffs, ddof=1) / np.sqrt(len(step_diffs)))
+        else:
+            uncertainties.append(np.std(step_diffs, ddof=1))
 
-    return np.array(disparity_over_time)
+    return np.array(mean_disparities), np.array(uncertainties)
 
 
 def analyze_sweep(metric, *args, **kwargs):
