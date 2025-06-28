@@ -1,9 +1,23 @@
+"""
+simulation_runner.py
+
+This module provides functions for running single or multiple simulations
+of the GentSim agent-based model, and performing parameter sweeps using
+Morris sampling via SALib for sensitivity analysis.
+
+Key functions:
+- single_run: Runs the model once and returns/saves the agent-level data.
+- multiple_runs: Runs the model multiple times in parallel and combines results.
+- parameter_sweep: Conducts a parameter sweep over sampled parameter sets.
+
+Author: [Your Name]
+Date: [Date]
+"""
+
 import os
 import pandas as pd
 import numpy as np
 import shutil
-from itertools import product
-
 from SALib.sample.morris import sample
 from src.model import GentSimModel
 from concurrent.futures import ProcessPoolExecutor
@@ -25,6 +39,28 @@ def single_run(
     output_path="data/agent_data.csv",
     save_data=True,
 ):
+    """
+    Run a single instance of the GentSimModel for a given number of steps.
+
+    Parameters:
+        n_agents (int): Number of agents in the model.
+        n_neighborhoods (int): Number of neighborhoods.
+        n_houses (int): Number of houses.
+        rent_factor (float): Rent price multiplier.
+        epsilon (int): Tolerance threshold.
+        p_h (float): Probability of moving.
+        b (float): Bias parameter.
+        r_moore (int): Neighborhood radius.
+        sensitivity_param (float): Sensitivity parameter (fixed or swept).
+        steps (int): Number of simulation steps.
+        income_distribution (str, optional): Income distribution specification.
+        income_bounds (list, optional): Income group boundaries.
+        output_path (str, optional): Where to save the agent data CSV.
+        save_data (bool, optional): If True, writes agent data to disk.
+
+    Returns:
+        pandas.DataFrame: DataFrame containing agent-level simulation data.
+    """
     gentsim = GentSimModel(
         N_agents=n_agents,
         N_neighbourhoods=n_neighborhoods,
@@ -52,8 +88,13 @@ def single_run(
 
     return agent_df
 
+
 def _single_run_wrapper(args):
+    """
+    Wrapper for single_run to allow parallel execution with ProcessPoolExecutor.
+    """
     return single_run(*args)
+
 
 def multiple_runs(
     n_agents,
@@ -71,6 +112,18 @@ def multiple_runs(
     income_bounds=[1, 24_000, 71_200, 100_001],
     output_path="data/combined_agent_data.csv",
 ):
+    """
+    Run multiple independent simulations of GentSimModel in parallel,
+    combining the agent-level outputs into a single CSV.
+
+    Parameters:
+        (Same as single_run) plus:
+        runs (int): Number of independent runs to execute.
+        output_path (str): Filepath to save combined data.
+
+    Returns:
+        None. Combined data is saved to disk.
+    """
     run_args = [
         (
             n_agents,
@@ -86,7 +139,7 @@ def multiple_runs(
             income_distribution,
             income_bounds,
             output_path,
-            False  # save_data
+            False  # Don't save individual runs
         )
         for _ in range(runs)
     ]
@@ -110,23 +163,41 @@ def parameter_sweep(
     n_samples,
     n_levels=4,
     income_distribution=None,
-    income_bounds=[1, 24.000, 71.200, 100.001],
+    income_bounds=[1, 24_000, 71_200, 100_001],
 ):
+    """
+    Perform a parameter sweep using Morris sampling (SALib) over specified
+    parameter ranges. Each sampled parameter set triggers multiple model runs.
+
+    Parameters:
+        n_agents (int): Number of agents.
+        n_neighborhoods (int): Number of neighborhoods.
+        n_houses (int): Number of houses.
+        steps (int): Steps per simulation.
+        runs (int): Repeats per parameter set.
+        n_samples (int): Number of parameter sets to sample.
+        n_levels (int, optional): Discretization levels in Morris method.
+        income_distribution (str, optional): Income distribution specification.
+        income_bounds (list, optional): Income group boundaries.
+
+    Returns:
+        None. Saves results for each parameter set to disk.
+    """
     problem = {
         "num_vars": 5,
         "names": ["epsilon", "p_h", "b", "r_moore", "rent_factor"],
         "bounds": [
-            [5, 10],       # epsilon
-            [0.01, 0.3],   # p_h
-            [0.0, 1.0],    # b
-            [1, 2],        # r_moore
-            [0.5, 0.9],    # rent_factor
+            [5, 10],       # epsilon: agent tolerance
+            [0.01, 0.3],   # p_h: probability of moving
+            [0.0, 1.0],    # b: bias parameter
+            [1, 2],        # r_moore: neighborhood radius
+            [0.5, 0.9],    # rent_factor: rent multiplier
         ],
     }
 
     param_values = sample(problem, n_samples, num_levels=n_levels)
-    param_values[:, 0] = np.round(param_values[:, 0])  # epsilon
-    param_values[:, 3] = np.round(param_values[:, 3])  # r_moore
+    param_values[:, 0] = np.round(param_values[:, 0])  # epsilon to integer
+    param_values[:, 3] = np.round(param_values[:, 3])  # r_moore to integer
 
     output_dir = "data/sweep_results"
     if os.path.exists(output_dir):
@@ -151,7 +222,7 @@ def parameter_sweep(
             p_h=p_h,
             b=b,
             r_moore=int(r_moore),
-            sensitivity_param=2,  # Hardcoded
+            sensitivity_param=2,  # Hardcoded sensitivity parameter
             steps=steps,
             runs=runs,
             income_distribution=income_distribution,
@@ -159,5 +230,4 @@ def parameter_sweep(
             output_path=output_path,
         )
 
-    print("\n✅ SALib parameter sweep completed.")
-
+    print("Parameter sweep completed.")

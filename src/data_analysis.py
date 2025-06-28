@@ -1,3 +1,20 @@
+"""
+data_analysis.py
+
+This module provides functions for analyzing income dynamics in GentSim agent-based
+model simulations. It includes calculations of average income evolution,
+spatial income disparities within neighborhoods, and tools for analyzing
+parameter sweep results across multiple simulation runs.
+
+Key functionality:
+- Compute average income over time or at specific steps.
+- Evaluate spatial income disparities between neighborhoods.
+- Analyze entire parameter sweeps from saved CSV results.
+
+Author: [Your Name]
+Date: [Date]
+"""
+
 import os
 import glob
 import re
@@ -13,7 +30,7 @@ def average_income_at_step(data, step):
     Calculate the average income at a specific time step.
 
     Parameters:
-        data (np.ndarray): 4D array with shape (runs, steps, width, height).
+        data (np.ndarray): 4D array with shape (n_runs, n_steps, width, height).
         step (int): The time step to evaluate.
 
     Returns:
@@ -27,7 +44,7 @@ def average_income_over_time(data):
     Calculate the average income at each time step over all runs and spatial dimensions.
 
     Parameters:
-        data (np.ndarray): 4D array with shape (runs, steps, width, height).
+        data (np.ndarray): 4D array with shape (n_runs, n_steps, width, height).
 
     Returns:
         np.ndarray: 1D array of average income for each time step.
@@ -41,7 +58,7 @@ def average_income_final_step(data):
     Calculate the average income at the final time step.
 
     Parameters:
-        data (np.ndarray): 4D array with shape (runs, steps, width, height).
+        data (np.ndarray): 4D array with shape (n_runs, n_steps, width, height).
 
     Returns:
         float: The average income at the final step.
@@ -52,25 +69,34 @@ def average_income_final_step(data):
 
 def spatial_income_disparity(income_data, N_neighbourhoods, N_houses):
     """
-    Computes the average (max - min) neighborhood income at final timestep across all runs.
+    Compute the average income disparity across neighborhoods at the final timestep.
+
+    Disparity is defined as the average difference between the richest and poorest
+    neighborhood incomes across all runs.
+
+    Parameters:
+        income_data (np.ndarray): 4D array (n_runs, n_steps, width, height).
+        N_neighbourhoods (int): Number of neighborhoods per axis.
+        N_houses (int): Number of houses per neighborhood side.
+
+    Returns:
+        float: Mean disparity at the final timestep across runs.
     """
     final_frames = income_data[:, -1, :, :]  # shape: (n_runs, width, height)
     height, width = final_frames.shape[1], final_frames.shape[2]
 
-    # Verify dimensions match expectations
     expected_size = N_neighbourhoods * N_houses
     if height != expected_size or width != expected_size:
         raise ValueError(f"Grid size ({height}x{width}) doesn't match "
                          f"expected {expected_size}x{expected_size}")
 
-    diffs = []
+    disparities = []
     for frame in final_frames:
         neighborhood_means = []
         for i in range(N_neighbourhoods):
             for j in range(N_neighbourhoods):
                 start_i, end_i = i * N_houses, (i + 1) * N_houses
                 start_j, end_j = j * N_houses, (j + 1) * N_houses
-
                 block = frame[start_i:end_i, start_j:end_j]
 
                 if block.size == 0:
@@ -82,25 +108,27 @@ def spatial_income_disparity(income_data, N_neighbourhoods, N_houses):
             raise ValueError("No neighborhoods found")
 
         disparity = max(neighborhood_means) - min(neighborhood_means)
-        diffs.append(disparity)
+        disparities.append(disparity)
 
-    return np.mean(diffs)
+    return np.mean(disparities)
 
 
 def spatial_income_disparity_over_time(income_data, N_neighbourhoods, N_houses, return_sem=True):
     """
-    Computes the average (max - min) neighborhood income at each timestep across all runs,
-    and optionally returns the standard deviation or standard error.
+    Compute the average neighborhood income disparity (max - min) over time.
+
+    For each timestep, calculates the disparity across neighborhoods averaged over all runs.
+    Optionally returns uncertainty as standard error or standard deviation.
 
     Parameters:
-        income_data (np.ndarray): Shape (n_runs, n_steps, width, height)
-        N_neighbourhoods (int): Number of neighborhoods per axis
-        N_houses (int): Number of houses per neighborhood side
-        return_sem (bool): If True, return standard error; else return standard deviation
+        income_data (np.ndarray): 4D array (n_runs, n_steps, width, height).
+        N_neighbourhoods (int): Number of neighborhoods per axis.
+        N_houses (int): Number of houses per neighborhood side.
+        return_sem (bool): If True, return standard error; else return standard deviation.
 
     Returns:
-        mean_disparities (np.ndarray): Mean disparity per timestep (shape: n_steps)
-        uncertainty (np.ndarray): Std or SEM per timestep (shape: n_steps)
+        mean_disparities (np.ndarray): Mean disparity per timestep (shape: n_steps).
+        uncertainty (np.ndarray): Uncertainty (SEM or std) per timestep (shape: n_steps).
     """
     n_runs, n_steps, height, width = income_data.shape
     expected_size = N_neighbourhoods * N_houses
@@ -121,8 +149,10 @@ def spatial_income_disparity_over_time(income_data, N_neighbourhoods, N_houses, 
                     start_i, end_i = i * N_houses, (i + 1) * N_houses
                     start_j, end_j = j * N_houses, (j + 1) * N_houses
                     block = frame[start_i:end_i, start_j:end_j]
+
                     if block.size == 0:
                         raise ValueError(f"Empty block at neighborhood ({i}, {j}) at step {step}")
+
                     neighborhood_means.append(np.mean(block))
 
             disparity = max(neighborhood_means) - min(neighborhood_means)
@@ -140,13 +170,20 @@ def spatial_income_disparity_over_time(income_data, N_neighbourhoods, N_houses, 
 
 def analyze_sweep(metric, *args, **kwargs):
     """
-    Analyzes simulation results from multiple CSV files in correct numerical order,
-    applying the given metric to each.
+    Analyze simulation results from a parameter sweep by applying a given metric
+    function to each sweep result file in the correct numerical order.
+
+    Parameters:
+        metric (callable): Function to apply to the data from each sweep result.
+        *args, **kwargs: Additional arguments forwarded to the metric function.
+
+    Returns:
+        np.ndarray: Array of metric values, one for each parameter sweep file.
     """
     directory = "data/sweep_results"
     files = glob.glob(os.path.join(directory, "*.csv"))
 
-    # Sort numerically by extracting the number from the filename
+    # Sort numerically using indices in filenames like parameter_sweep_X.csv
     def extract_index(filepath):
         match = re.search(r'parameter_sweep_(\d+)\.csv', os.path.basename(filepath))
         return int(match.group(1)) if match else float('inf')
@@ -157,12 +194,8 @@ def analyze_sweep(metric, *args, **kwargs):
 
     for file_path in files_sorted:
         print(f"Processing file: {file_path}")
-
         simulation_data = multiple_run_grid(file_path)
         result = metric(simulation_data, *args, **kwargs)
         results.append(result)
 
     return np.array(results)
-
-
-
