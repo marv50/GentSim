@@ -7,16 +7,16 @@ if __name__ == "__main__":
     n_houses = 5
 
     single_run(
-        n_agents=300,
+        n_agents=400,
         n_neighborhoods=5,
         n_houses=n_houses,
-        epsilon=5,
-        p_h=0.6,
+        epsilon=8,
+        p_h=0.4,
         b=0.5,
         r_moore=1,
         sensitivity_param=2,
-        steps=20,
-        rent_factor=0.9,
+        steps=50,
+        rent_factor=0.7,
         income_bounds=bins,
     )
 

@@ -13,7 +13,9 @@ if __name__ == "__main__":
     n_houses = 5
     steps = 50
     runs = 10
-    n_samples = 1
+    n_samples = 10
+    
+    
 
     parameter_sweep(
         n_agents,

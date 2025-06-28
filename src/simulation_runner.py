@@ -4,7 +4,7 @@ import numpy as np
 import shutil
 from itertools import product
 
-from SALib.sample import saltelli
+from SALib.sample.morris import sample
 from src.model import GentSimModel
 from concurrent.futures import ProcessPoolExecutor
 
@@ -108,6 +108,7 @@ def parameter_sweep(
     steps,
     runs,
     n_samples,
+    n_levels=4,
     income_distribution=None,
     income_bounds=[1, 24.000, 71.200, 100.001],
 ):
@@ -123,7 +124,7 @@ def parameter_sweep(
         ],
     }
 
-    param_values = saltelli.sample(problem, n_samples, calc_second_order=False)
+    param_values = sample(problem, n_samples, num_levels=n_levels)
     param_values[:, 0] = np.round(param_values[:, 0])  # epsilon
     param_values[:, 3] = np.round(param_values[:, 3])  # r_moore
 
@@ -159,6 +160,4 @@ def parameter_sweep(
         )
 
     print("\n✅ SALib parameter sweep completed.")
-
-
 

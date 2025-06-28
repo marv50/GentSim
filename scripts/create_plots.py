@@ -115,7 +115,7 @@ def visualize_grid_evolution(
         frameon=True,
         fontsize="medium",
     )
-    fig.suptitle("Evolution of Income on the Grid Overtime", fontsize=20)
+    fig.suptitle("Evolution of Houseold Movement", fontsize=20)
     plt.tight_layout()
 
     if save_path:
@@ -123,6 +123,7 @@ def visualize_grid_evolution(
         print(f"Plot saved to: {save_path}")
     else:
         plt.show()
+
 
 def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_path='fig/disparity_over_time.png'):
     """
@@ -142,7 +143,8 @@ def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_
         uncertainty = np.array(uncertainty)
         lower = disparity_values - uncertainty
         upper = disparity_values + uncertainty
-        plt.fill_between(np.arange(len(disparity_values)), lower, upper, color='blue', alpha=0.3, label='Uncertainty')
+        plt.fill_between(np.arange(len(disparity_values)), lower,
+                         upper, color='blue', alpha=0.3, label='Uncertainty')
 
     plt.xlabel('Time Step')
     plt.ylabel('Income Disparity')
@@ -151,4 +153,38 @@ def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_path)
+    plt.close()
+
+def plot_elementary_effects(data, parameters):
+    """
+    Plots mu_star and sigma from Morris elementary effects results.
+
+    Parameters:
+    - data (dict or pd.DataFrame): Should contain 'mu_star' and 'sigma' values.
+    - parameters (list): List of parameter names corresponding to data.
+    """
+    # If input data is dict, convert to DataFrame
+    if isinstance(data, dict):
+        df = pd.DataFrame(data, index=parameters)
+    else:
+        df = data.copy()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    x = np.arange(len(df))
+    bar_width = 0.35
+
+    # Plot bars
+    ax.bar(x - bar_width/2, df["mu_star"], width=bar_width, label="μ★ (mu_star)", color="darkorange")
+    ax.bar(x + bar_width/2, df["sigma"], width=bar_width, label="σ (sigma)", color="slateblue")
+
+    # Labels and styling
+    ax.set_xlabel("Parameters")
+    ax.set_ylabel("Effect Value")
+    ax.set_title("Morris Sensitivity Analysis: μ★ and σ")
+    ax.set_xticks(x)
+    ax.set_xticklabels(df.index)
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig("fig/morris_sensitivity_analysis.png", dpi=FIG_DPI)
     plt.close()
