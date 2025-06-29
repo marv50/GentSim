@@ -7,7 +7,6 @@ from matplotlib import pyplot as plt
 # Definer number of parameters examined for the SA
 
 if __name__ == "__main__":
-    # Set the random seed for reproducibility
     n_agents = 300
     n_neighborhoods = 5
     n_houses = 5
