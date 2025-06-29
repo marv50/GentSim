@@ -11,7 +11,7 @@ if __name__ == "__main__":
         n_neighborhoods=5,
         n_houses=n_houses,
         epsilon=8,
-        p_h=0.4,
+        p_h=0.5,
         b=0.5,
         r_moore=1,
         sensitivity_param=2,

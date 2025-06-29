@@ -18,7 +18,7 @@ import os
 import pandas as pd
 import numpy as np
 import shutil
-from SALib.sample.morris import sample
+from SALib.sample import saltelli
 from src.model import GentSimModel
 from concurrent.futures import ProcessPoolExecutor
 
@@ -161,6 +161,7 @@ def parameter_sweep(
     steps,
     runs,
     n_samples,
+    problem,
     n_levels=4,
     income_distribution=None,
     income_bounds=[1, 24_000, 71_200, 100_001],
@@ -183,19 +184,8 @@ def parameter_sweep(
     Returns:
         None. Saves results for each parameter set to disk.
     """
-    problem = {
-        "num_vars": 5,
-        "names": ["epsilon", "p_h", "b", "r_moore", "rent_factor"],
-        "bounds": [
-            [5, 10],       # epsilon: agent tolerance
-            [0.01, 0.3],   # p_h: probability of moving
-            [0.0, 1.0],    # b: bias parameter
-            [1, 2],        # r_moore: neighborhood radius
-            [0.5, 0.9],    # rent_factor: rent multiplier
-        ],
-    }
 
-    param_values = sample(problem, n_samples, num_levels=n_levels)
+    param_values = saltelli.sample(problem, n_samples, calc_second_order=False)
     param_values[:, 0] = np.round(param_values[:, 0])  # epsilon to integer
     param_values[:, 3] = np.round(param_values[:, 3])  # r_moore to integer
 
@@ -205,7 +195,8 @@ def parameter_sweep(
     os.makedirs(output_dir)
 
     total_runs = len(param_values)
-    print(f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
+    print(
+        f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
 
     for i, (epsilon, p_h, b, r_moore, rent_factor) in enumerate(param_values):
         print(f"=== Running SALib sweep {i + 1} of {total_runs} ===")
@@ -222,7 +213,7 @@ def parameter_sweep(
             p_h=p_h,
             b=b,
             r_moore=int(r_moore),
-            sensitivity_param=2,  # Hardcoded sensitivity parameter
+            sensitivity_param=2,
             steps=steps,
             runs=runs,
             income_distribution=income_distribution,
