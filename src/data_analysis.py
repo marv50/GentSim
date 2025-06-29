@@ -67,6 +67,76 @@ def average_income_final_step(data):
     return average_income_at_step(data, final_step)
 
 
+def clustering_at_step(data, step, N_neighbourhoods = 5, N_houses = 5, bins = [1, 24_000, 71_200, 100_001]):
+    """
+    Calculate the clustering coefficient at a specific time step.
+
+    Parameters:
+        data (np.ndarray): 4D array with shape (n_runs, n_steps, width, height).
+        step (int): The time step to evaluate.
+        N_neighbourhoods (int): Number of neighborhoods per axis.
+        N_houses (int): Number of houses per neighborhood side.
+        bins (int): Number of bins for clustering calculation.
+
+    Returns:
+        float: The average clustering coefficient at the given step.
+    """
+    # Assuming clustering is defined as the average of all values in the grid
+    clustering_values = []
+    frame = data[:, step, :, :]  # shape: (n_runs, width, height)
+    for run in frame:
+        clustering_at_step = []
+        for i in range(N_neighbourhoods):
+            for j in range(N_neighbourhoods):
+                start_i, end_i = i * N_houses, (i + 1) * N_houses
+                start_j, end_j = j * N_houses, (j + 1) * N_houses
+                block = run[start_i:end_i, start_j:end_j]
+
+                if block.size == 0:
+                    print(block)
+                    print(run.shape)
+                    print(run)
+                    raise ValueError(f"Empty block at neighborhood ({i}, {j})")
+                # Count poor houses in the block
+                l = np.sum(block < bins[1])  # Assuming bins[0] is the threshold for poor income
+                m = np.sum((block >= bins[1]) & (block < bins[2]))  # Mid-income houses
+                h = np.sum(block >= bins[2])  # Rich houses
+                clustering = (l*l + m*m + h*h) / (l + m + h) if (l + m + h) > 0 else 1
+                clustering_at_step.append(clustering)
+
+        clustering_values.append(np.mean(clustering_at_step))
+    print(f"Clustering at step {step}: {np.mean(clustering_values)}")
+    return clustering_values
+
+def average_clustering_over_time(data, N_neighbourhoods = 5, N_houses = 5, bins = [1, 24_000, 71_200, 100_001]):
+    """
+    Calculate the average clustering coefficient over time.
+
+    For each time step, computes the average clustering across all runs.
+
+    Parameters:
+        data (np.ndarray): 4D array with shape (n_runs, n_steps, width, height).
+        N_neighbourhoods (int): Number of neighborhoods per axis.
+        N_houses (int): Number of houses per neighborhood side.
+        bins (int): Number of bins for clustering calculation.
+
+    Returns:
+        np.ndarray: 1D array of average clustering coefficients for each time step.
+    """
+    n_steps = data.shape[1]
+    avg_clustering = np.array([clustering_at_step(data, step, N_neighbourhoods, N_houses, bins) for step in range(n_steps)])
+    print(f"Average clustering coefficients over time: {avg_clustering}")
+    mean_avg_clustering = np.mean(avg_clustering, axis=1)  # Average across runs
+    print(f"Mean average clustering coefficients over time: {mean_avg_clustering}")
+    std = np.std(avg_clustering, axis=1, ddof=1)  # Standard deviation across runs
+    print(f"Standard deviation of clustering coefficients over time: {std}")
+    return mean_avg_clustering, std
+
+def clustering_scalar(data, N_neighbourhoods = 5, N_houses = 5, bins = [1, 24_000, 71_200, 100_001]):
+    
+    return np.mean(average_clustering_over_time(data, N_neighbourhoods, N_houses, bins))
+
+
 def spatial_income_disparity(income_data, N_neighbourhoods, N_houses):
     """
     Compute the average income disparity across neighborhoods at the final timestep.

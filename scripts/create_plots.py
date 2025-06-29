@@ -155,6 +155,40 @@ def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_
     plt.savefig(output_path)
     plt.close()
 
+def plot_clustering_over_time(
+    clustering_values: List[float],
+    uncertainty: Optional[List[float]] = None,
+    output_path: str = 'fig/clustering_over_time.png'
+):
+    """
+    Plots and saves the clustering coefficient over time, with optional uncertainty shading.
+
+    Parameters:
+    - clustering_values (list or np.array): The clustering coefficient values over time (1D).
+    - uncertainty (list or np.array, optional): The std or SEM for each time step (same length as clustering_values).
+    - output_path (str): File path to save the plot (including filename).
+    """
+    clustering_values = np.array(clustering_values)
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(clustering_values, label='Clustering', color='green')
+
+    if uncertainty is not None:
+        uncertainty = np.array(uncertainty)
+        lower = clustering_values - uncertainty
+        upper = clustering_values + uncertainty
+        plt.fill_between(np.arange(len(clustering_values)), lower,
+                         upper, color='green', alpha=0.3, label='Uncertainty')
+
+    plt.xlabel('Time Step')
+    plt.ylabel('Clustering')
+    plt.title('Clustering Over Time')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
+
 def plot_elementary_effects(data, parameters):
     """
     Plots mu_star and sigma from Morris elementary effects results.
