@@ -1,13 +1,13 @@
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from matplotlib.patches import Patch
-import pandas as pd
-import numpy as np
-
-import matplotlib
 from typing import List, Optional, Tuple
 
-from src.income_distribution import repeat_data, load_distribution
+import matplotlib
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.patches import Patch
+
+from src.income_distribution import load_distribution, repeat_data
 
 plt.style.use("bmh")
 plt.rcParams["figure.figsize"] = (12, 6)
@@ -34,7 +34,7 @@ def plot_income_distribution(
     pd.Series(expanded_data).plot(
         kind="hist", bins=bins, edgecolor="black", density=True
     )
-    plt.title(title)
+    plt.title(title, fontweight="bold")
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(False)
@@ -111,11 +111,11 @@ def visualize_grid_evolution(
     fig.legend(
         handles=legend_elements,
         loc="upper right",
-        bbox_to_anchor=(1.15, 0.9),
+        bbox_to_anchor=(1.18, 0.9),
         frameon=True,
         fontsize="medium",
     )
-    fig.suptitle("Evolution of Houseold Movement", fontsize=20)
+    fig.suptitle("Evolution of Houseold Movement", fontsize=25, fontweight="bold")
     plt.tight_layout()
 
     if save_path:
@@ -125,7 +125,9 @@ def visualize_grid_evolution(
         plt.show()
 
 
-def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_path='fig/disparity_over_time.png'):
+def plot_spatial_disparity_over_time(
+    disparity_values, uncertainty=None, output_path="fig/disparity_over_time.png"
+):
     """
     Plots and saves the average spatial income disparity over time, with optional uncertainty shading.
 
@@ -137,23 +139,30 @@ def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_
     disparity_values = np.array(disparity_values)
 
     plt.figure(figsize=(8, 5))
-    plt.plot(disparity_values, label='Mean Disparity', color='blue')
+    plt.plot(disparity_values, label="Mean Disparity", color="blue")
 
     if uncertainty is not None:
         uncertainty = np.array(uncertainty)
         lower = disparity_values - uncertainty
         upper = disparity_values + uncertainty
-        plt.fill_between(np.arange(len(disparity_values)), lower,
-                         upper, color='blue', alpha=0.3, label='Uncertainty')
+        plt.fill_between(
+            np.arange(len(disparity_values)),
+            lower,
+            upper,
+            color="blue",
+            alpha=0.3,
+            label="Uncertainty",
+        )
 
-    plt.xlabel('Time Step')
-    plt.ylabel('Income Disparity')
-    plt.title('Average Spatial Income Disparity Over Time')
+    plt.xlabel("Time Step")
+    plt.ylabel("Income Disparity")
+    plt.title("Average Spatial Income Disparity Over Time")
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
+
 
 def plot_elementary_effects(data, parameters):
     """
@@ -175,8 +184,20 @@ def plot_elementary_effects(data, parameters):
     bar_width = 0.35
 
     # Plot bars
-    ax.bar(x - bar_width/2, df["mu_star"], width=bar_width, label="μ★ (mu_star)", color="darkorange")
-    ax.bar(x + bar_width/2, df["sigma"], width=bar_width, label="σ (sigma)", color="slateblue")
+    ax.bar(
+        x - bar_width / 2,
+        df["mu_star"],
+        width=bar_width,
+        label="μ★ (mu_star)",
+        color="darkorange",
+    )
+    ax.bar(
+        x + bar_width / 2,
+        df["sigma"],
+        width=bar_width,
+        label="σ (sigma)",
+        color="slateblue",
+    )
 
     # Labels and styling
     ax.set_xlabel("Parameters")
