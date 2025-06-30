@@ -24,9 +24,17 @@ def plot_income_distribution(
     bins: int = 50,
     save=True,
     save_path: str = "fig/income_distribution.png",
-):
+) -> None:
     """
     Plot the income distribution.
+
+    Parameters:
+    - title (str): Title of the plot.
+    - xlabel (str): Label for the x-axis.
+    - ylabel (str): Label for the y-axis.
+    - bins (int): Number of bins for the histogram.
+    - save (bool): If True, saves the plot to a file.
+    - save_path (str): Path to save the plot if `save` is True.
     """
     df = load_distribution()
 
@@ -53,7 +61,20 @@ def visualize_grid_evolution(
     step_indices: Optional[List[int]] = None,
     figsize: Tuple[int, int] = (15, 10),
     save_path: Optional[str] = None,
-):
+) -> None:
+    """
+    Visualizes the evolution of a grid over time, showing household income distribution.
+
+    Parameters:
+    - timeseries_grid (np.ndarray): 3D array of shape (T, H, W) where T is the number of time steps,
+      H is the height, and W is the width of the grid.
+    - n_houses (int): Number of houses in the grid.
+    - income_bounds (List[int], optional): List of income bounds for coloring the grid.
+    - step_indices (List[int], optional): Specific time steps to visualize. If None,
+      will visualize a maximum of 6 evenly spaced steps.
+    - figsize (Tuple[int, int]): Size of the figure.
+    - save_path (str, optional): If provided, saves the plot to this path instead of showing it.
+    """
     if save_path:
         matplotlib.use("Agg")
 
@@ -125,7 +146,9 @@ def visualize_grid_evolution(
         plt.show()
 
 
-def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_path='fig/disparity_over_time.png'):
+def plot_spatial_disparity_over_time(
+    disparity_values, uncertainty=None, output_path="fig/disparity_over_time.png"
+) -> None:
     """
     Plots and saves the average spatial income disparity over time, with optional uncertainty shading.
 
@@ -137,29 +160,36 @@ def plot_spatial_disparity_over_time(disparity_values, uncertainty=None, output_
     disparity_values = np.array(disparity_values)
 
     plt.figure(figsize=(8, 5))
-    plt.plot(disparity_values, label='Mean Disparity', color='blue')
+    plt.plot(disparity_values, label="Mean Disparity", color="blue")
 
     if uncertainty is not None:
         uncertainty = np.array(uncertainty)
         lower = disparity_values - uncertainty
         upper = disparity_values + uncertainty
-        plt.fill_between(np.arange(len(disparity_values)), lower,
-                         upper, color='blue', alpha=0.3, label='Uncertainty')
+        plt.fill_between(
+            np.arange(len(disparity_values)),
+            lower,
+            upper,
+            color="blue",
+            alpha=0.3,
+            label="Uncertainty",
+        )
 
-    plt.xlabel('Time Step')
-    plt.ylabel('Income Disparity')
-    plt.title('Average Spatial Income Disparity Over Time')
+    plt.xlabel("Time Step")
+    plt.ylabel("Income Disparity")
+    plt.title("Average Spatial Income Disparity Over Time")
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
 
+
 def plot_clustering_over_time(
     clustering_values: List[float],
     uncertainty: Optional[List[float]] = None,
-    output_path: str = 'fig/clustering_over_time.png'
-):
+    output_path: str = "fig/clustering_over_time.png",
+) -> None:
     """
     Plots and saves the clustering coefficient over time, with optional uncertainty shading.
 
@@ -171,25 +201,32 @@ def plot_clustering_over_time(
     clustering_values = np.array(clustering_values)
 
     plt.figure(figsize=(8, 5))
-    plt.plot(clustering_values, label='Clustering', color='green')
+    plt.plot(clustering_values, label="Clustering", color="green")
 
     if uncertainty is not None:
         uncertainty = np.array(uncertainty)
         lower = clustering_values - uncertainty
         upper = clustering_values + uncertainty
-        plt.fill_between(np.arange(len(clustering_values)), lower,
-                         upper, color='green', alpha=0.3, label='Uncertainty')
+        plt.fill_between(
+            np.arange(len(clustering_values)),
+            lower,
+            upper,
+            color="green",
+            alpha=0.3,
+            label="Uncertainty",
+        )
 
-    plt.xlabel('Time Step')
-    plt.ylabel('Clustering')
-    plt.title('Clustering Over Time')
+    plt.xlabel("Time Step")
+    plt.ylabel("Clustering")
+    plt.title("Clustering Over Time")
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
 
-def plot_elementary_effects(data, parameters):
+
+def plot_elementary_effects(data, parameters) -> None:
     """
     Plots mu_star and sigma from Morris elementary effects results.
 
@@ -203,14 +240,26 @@ def plot_elementary_effects(data, parameters):
     else:
         df = data.copy()
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
 
     x = np.arange(len(df))
     bar_width = 0.35
 
     # Plot bars
-    ax.bar(x - bar_width/2, df["mu_star"], width=bar_width, label="μ★ (mu_star)", color="darkorange")
-    ax.bar(x + bar_width/2, df["sigma"], width=bar_width, label="σ (sigma)", color="slateblue")
+    ax.bar(
+        x - bar_width / 2,
+        df["mu_star"],
+        width=bar_width,
+        label="μ★ (mu_star)",
+        color="darkorange",
+    )
+    ax.bar(
+        x + bar_width / 2,
+        df["sigma"],
+        width=bar_width,
+        label="σ (sigma)",
+        color="slateblue",
+    )
 
     # Labels and styling
     ax.set_xlabel("Parameters")

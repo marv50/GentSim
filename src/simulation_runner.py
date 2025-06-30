@@ -32,7 +32,6 @@ def single_run(
     p_h,
     b,
     r_moore,
-    sensitivity_param,
     steps,
     income_distribution=None,
     income_bounds=[1, 24_000, 71_200, 100_001],
@@ -51,7 +50,6 @@ def single_run(
         p_h (float): Probability of moving.
         b (float): Bias parameter.
         r_moore (int): Neighborhood radius.
-        sensitivity_param (float): Sensitivity parameter (fixed or swept).
         steps (int): Number of simulation steps.
         income_distribution (str, optional): Income distribution specification.
         income_bounds (list, optional): Income group boundaries.
@@ -71,7 +69,6 @@ def single_run(
         p_h=p_h,
         b=b,
         r_moore=r_moore,
-        sensitivity_param=sensitivity_param,
         rent_factor=rent_factor,
     )
 
@@ -105,7 +102,6 @@ def multiple_runs(
     p_h,
     b,
     r_moore,
-    sensitivity_param,
     steps,
     runs,
     income_distribution=None,
@@ -134,12 +130,11 @@ def multiple_runs(
             p_h,
             b,
             r_moore,
-            sensitivity_param,
             steps,
             income_distribution,
             income_bounds,
             output_path,
-            False  # Don't save individual runs
+            False,  # Don't save individual runs
         )
         for _ in range(runs)
     ]
@@ -195,8 +190,7 @@ def parameter_sweep(
     os.makedirs(output_dir)
 
     total_runs = len(param_values)
-    print(
-        f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
+    print(f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
 
     for i, (epsilon, p_h, b, r_moore, rent_factor) in enumerate(param_values):
         print(f"=== Running SALib sweep {i + 1} of {total_runs} ===")
@@ -213,7 +207,6 @@ def parameter_sweep(
             p_h=p_h,
             b=b,
             r_moore=int(r_moore),
-            sensitivity_param=2,
             steps=steps,
             runs=runs,
             income_distribution=income_distribution,
