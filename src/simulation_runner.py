@@ -139,7 +139,7 @@ def multiple_runs(
             income_distribution,
             income_bounds,
             output_path,
-            False  # Don't save individual runs
+            False,  # Don't save individual runs
         )
         for _ in range(runs)
     ]
@@ -195,8 +195,7 @@ def parameter_sweep(
     os.makedirs(output_dir)
 
     total_runs = len(param_values)
-    print(
-        f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
+    print(f"\nStarting SALib parameter sweep with {total_runs} parameter sets...\n")
 
     for i, (epsilon, p_h, b, r_moore, rent_factor) in enumerate(param_values):
         print(f"=== Running SALib sweep {i + 1} of {total_runs} ===")

@@ -31,6 +31,22 @@ class GentSimModel(Model):
         sensitivity_param: int = 2,
         rent_factor: float = 0.7,
     ) -> None:
+        """
+        Initialize the GentSim model.
+
+        Parameters:
+        - N_agents (int): Number of agents in the model.
+        - N_neighbourhoods (int): Number of neighbourhoods in the model.
+        - N_houses (int): Number of houses in each neighbourhood.
+        - income_distribution (list or None): Custom income distribution for agents.
+        - income_bounds (list): Bounds for the income distribution.
+        - epsilon (int): Number of steps to keep in history.
+        - p_h (int): Probability of moving out.
+        - b (float): Parameter for the moving out probability.
+        - r_moore (int): Radius for Moore neighbourhood.
+        - sensitivity_param (int): Sensitivity parameter for moving out probability.
+        - rent_factor (float): Factor to calculate rent based on neighbourhood income.
+        """
         super().__init__()
 
         self.N_neighbourhoods = N_neighbourhoods
@@ -119,6 +135,9 @@ class GentSimModel(Model):
     def init_population(self, N_agents: int) -> None:
         """
         Initialize the population of agents in the model.
+
+        Parameters:
+        - N_agents (int): Number of agents to initialize.
         """
         for _ in range(N_agents):
             empty_houses = np.argwhere(self.empty_houses)
@@ -134,9 +153,13 @@ class GentSimModel(Model):
             self.grid.place_agent(agent, pos)
             self.empty_houses[pos] = False  # Mark the house as occupied
 
-    def update_neighbourhood(self, agent, pos) -> None:
+    def update_neighbourhood(self, agent: Household, pos: tuple) -> None:
         """
         Create a new agent at the specified position.
+
+        Parameters:
+        - agent: The agent to be placed in the neighbourhood.
+        - pos (tuple): The position where the agent will be placed.
         """
         neighbourhood = self.neighbourhoods[
             pos[0] // self.N_neighbourhoods, pos[1] // self.N_neighbourhoods
@@ -144,7 +167,6 @@ class GentSimModel(Model):
         neighbourhood.residents += 1
         agent.neighbourhood = neighbourhood
         neighbourhood.total_income += agent.income
-        # return
 
     def get_current_income_grid(self) -> np.ndarray:
         """
