@@ -97,7 +97,6 @@ def clustering_at_step(
                 clustering_at_step.append(clustering)
 
         clustering_values.append(np.mean(clustering_at_step))
-    print(f"Clustering at step {step}: {np.mean(clustering_values)}")
     return clustering_values
 
 
@@ -128,14 +127,10 @@ def average_clustering_over_time(
             for step in range(n_steps)
         ]
     )
-    print(f"Average clustering coefficients over time: {avg_clustering}")
     mean_avg_clustering = np.mean(
         avg_clustering, axis=1)  # Average across runs
-    print(
-        f"Mean average clustering coefficients over time: {mean_avg_clustering}")
-    # Standard deviation across runs
+    
     std = np.std(avg_clustering, axis=1, ddof=1)
-    print(f"Standard deviation of clustering coefficients over time: {std}")
     return mean_avg_clustering, std
 
 

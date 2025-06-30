@@ -1,6 +1,5 @@
 from SALib.analyze import sobol
 
-<<<<<<< HEAD
 from src.csv_converter import multiple_run_grid
 from src.data_analysis import analyze_sweep, clustering_scalar
 
@@ -10,10 +9,6 @@ import matplotlib.pyplot as plt
 n_houses = 5
 n_neighborhoods = 5
 
-=======
-from src.data_analysis import analyze_sweep, average_income_final_step
-
->>>>>>> 1b404124b916feac705f0c2213f1544116ccc1e8
 problem = {
     "num_vars": 5,
     "names": ["epsilon", "p_h", "b", "r_moore", "rent_factor"],
