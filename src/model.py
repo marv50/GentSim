@@ -177,7 +177,7 @@ class GentSimModel(Model):
 
         return income_grid
 
-    def save_grid_snapshot(self):
+    def save_grid_snapshot(self) -> None:
         """
         Save the current state of the grid and neighborhood income to history.
         """
@@ -205,7 +205,7 @@ class GentSimModel(Model):
                 -max_history_length:
             ]
 
-    def step(self):
+    def step(self) -> None:
         """
         Advance the model by one step.
         """
