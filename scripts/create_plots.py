@@ -13,8 +13,8 @@ plt.style.use("bmh")
 plt.rcParams["figure.figsize"] = (12, 6)
 plt.rcParams["font.size"] = 18
 plt.rcParams["axes.labelsize"] = 18
-plt.rcParams["axes.titlesize"] = 20
-FIG_DPI = 300
+plt.rcParams["axes.titlesize"] = 35
+FIG_DPI = 500
 
 
 def plot_income_distribution(
@@ -51,7 +51,7 @@ def visualize_grid_evolution(
     n_houses: int,
     income_bounds: Optional[List[int]] = None,
     step_indices: Optional[List[int]] = None,
-    figsize: Tuple[int, int] = (15, 10),
+    figsize: Tuple[int, int] = (20, 15),
     save_path: Optional[str] = None,
 ):
     if save_path:
@@ -111,11 +111,11 @@ def visualize_grid_evolution(
     fig.legend(
         handles=legend_elements,
         loc="upper right",
-        bbox_to_anchor=(1.18, 0.9),
+        bbox_to_anchor=(1.25, 0.9),
         frameon=True,
-        fontsize="medium",
+        fontsize="30",
     )
-    fig.suptitle("Evolution of Houseold Movement", fontsize=25, fontweight="bold")
+    fig.suptitle("Evolution of Houseold Movement", fontsize=35)
     plt.tight_layout()
 
     if save_path:
