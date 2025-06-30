@@ -1,10 +1,13 @@
 from SALib.analyze import sobol
 
 from src.csv_converter import multiple_run_grid
-from src.data_analysis import analyze_sweep, average_income_final_step
+from src.data_analysis import analyze_sweep, clustering_scalar
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+n_houses = 5
+n_neighborhoods = 5
 
 problem = {
     "num_vars": 5,
@@ -20,8 +23,8 @@ problem = {
 
 # Sample input parameters using Morris
 # Run model (this assumes you already ran simulations and saved data)
-y = analyze_sweep(average_income_final_step)
+y = analyze_sweep(clustering_scalar)
 
 # Analyze
-Si = sobol.analyze(problem, y)
+Si = sobol.analyze(problem, y, calc_second_order=False, print_to_console=True)
 
