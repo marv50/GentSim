@@ -98,7 +98,7 @@ def clustering_at_step(data, step, N_neighbourhoods = 5, N_houses = 5, bins = [1
                     print(run)
                     raise ValueError(f"Empty block at neighborhood ({i}, {j})")
                 # Count poor houses in the block
-                l = np.sum(block < bins[1])  # Assuming bins[0] is the threshold for poor income
+                l = np.sum((block >= bins[0]) & (block < bins[1]))  # Assuming bins[1] is the threshold for poor income
                 m = np.sum((block >= bins[1]) & (block < bins[2]))  # Mid-income houses
                 h = np.sum(block >= bins[2])  # Rich houses
                 clustering = (l*l + m*m + h*h) / (l + m + h) if (l + m + h) > 0 else 1
