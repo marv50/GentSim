@@ -85,11 +85,14 @@ def clustering_at_step(
                     print(run)
                     raise ValueError(f"Empty block at neighborhood ({i}, {j})")
                 # Count poor houses in the block
-                l = np.sum((block >= bins[0]) & (block < bins[1]))  # Assuming bins[1] is the threshold for poor income
-                m = np.sum((block >= bins[1]) & (block < bins[2]))  # Mid-income houses
+                # Assuming bins[1] is the threshold for poor income
+                l = np.sum((block >= bins[0]) & (block < bins[1]))
+                m = np.sum((block >= bins[1]) & (
+                    block < bins[2]))  # Mid-income houses
                 h = np.sum(block >= bins[2])  # Rich houses
                 clustering = (
-                    (l * l + m * m + h * h) / (l + m + h) if (l + m + h) > 0 else 1
+                    (l * l + m * m + h * h) /
+                    (l + m + h) if (l + m + h) > 0 else 1
                 )
                 clustering_at_step.append(clustering)
 
@@ -126,9 +129,12 @@ def average_clustering_over_time(
         ]
     )
     print(f"Average clustering coefficients over time: {avg_clustering}")
-    mean_avg_clustering = np.mean(avg_clustering, axis=1)  # Average across runs
-    print(f"Mean average clustering coefficients over time: {mean_avg_clustering}")
-    std = np.std(avg_clustering, axis=1, ddof=1)  # Standard deviation across runs
+    mean_avg_clustering = np.mean(
+        avg_clustering, axis=1)  # Average across runs
+    print(
+        f"Mean average clustering coefficients over time: {mean_avg_clustering}")
+    # Standard deviation across runs
+    std = np.std(avg_clustering, axis=1, ddof=1)
     print(f"Standard deviation of clustering coefficients over time: {std}")
     return mean_avg_clustering, std
 
@@ -138,7 +144,7 @@ def clustering_scalar(
     N_neighbourhoods: int = 5,
     N_houses: int = 5,
     bins: list = [1, 24_000, 71_200, 100_001],
-):
+) -> float:
     """
     Calculate the average clustering coefficient across all runs and time steps.
 
@@ -151,7 +157,10 @@ def clustering_scalar(
     Returns:
     - float: The average clustering coefficient across all runs and time steps.
     """
-    return np.mean(average_clustering_over_time(data, N_neighbourhoods, N_houses, bins))
+    mean_avg_clustering, _ = average_clustering_over_time(
+        data, N_neighbourhoods, N_houses, bins
+    )
+    return np.mean(mean_avg_clustering)
 
 
 def spatial_income_disparity(
@@ -261,7 +270,8 @@ def spatial_income_disparity_over_time(
         step_diffs = np.array(step_diffs)
         mean_disparities.append(np.mean(step_diffs))
         if return_sem:
-            uncertainties.append(np.std(step_diffs, ddof=1) / np.sqrt(len(step_diffs)))
+            uncertainties.append(
+                np.std(step_diffs, ddof=1) / np.sqrt(len(step_diffs)))
         else:
             uncertainties.append(np.std(step_diffs, ddof=1))
 
@@ -285,7 +295,8 @@ def analyze_sweep(metric: callable, *args, **kwargs) -> np.ndarray:
 
     # Sort numerically using indices in filenames like parameter_sweep_X.csv
     def extract_index(filepath):
-        match = re.search(r"parameter_sweep_(\d+)\.csv", os.path.basename(filepath))
+        match = re.search(r"parameter_sweep_(\d+)\.csv",
+                          os.path.basename(filepath))
         return int(match.group(1)) if match else float("inf")
 
     files_sorted = sorted(files, key=extract_index)
