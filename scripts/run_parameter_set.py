@@ -1,5 +1,3 @@
-from matplotlib import pyplot as plt
-
 from src.simulation_runner import multiple_runs
 from src.csv_converter import multiple_run_grid
 from src.data_analysis import *
@@ -18,12 +16,11 @@ if __name__ == "__main__":
         rent_factor=0.7,
         steps=50,
         runs=10,
-        output_path='data/combined_agent_data.csv'
+        output_path="data/combined_agent_data.csv",
     )
 
-
-    path = 'data/combined_agent_data.csv'
-    array = multiple_run_grid(path)  
+    path = "data/combined_agent_data.csv"
+    array = multiple_run_grid(path)
 
     # result = spatial_income_disparity_over_time(array, N_neighbourhoods=5, N_houses=5)
     result, std = average_clustering_over_time(array, N_neighbourhoods=5, N_houses=5)
