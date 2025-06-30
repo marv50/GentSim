@@ -22,8 +22,6 @@ if __name__ == "__main__":
     path = "data/combined_agent_data.csv"
     array = multiple_run_grid(path)
 
-    # result = spatial_income_disparity_over_time(array, N_neighbourhoods=5, N_houses=5)
     result, std = average_clustering_over_time(array, N_neighbourhoods=5, N_houses=5)
 
     plot_clustering_over_time(result, std)
-    # plot_spatial_income_disparity_over_time(result)
