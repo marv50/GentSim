@@ -232,7 +232,7 @@ clustering = (n_low² + n_medium² + n_high²) / (n_low + n_medium + n_high)
 Tracks inequality by measuring the difference between richest and poorest neighborhoods over time.
 
 **Sensitivity Analysis:**
-Uses Morris method to identify parameter importance through elementary effects (μ* and σ values).
+Uses Sobel method to identify parameter importance through first order and total order values.
 
 ## Data and Outputs
 
