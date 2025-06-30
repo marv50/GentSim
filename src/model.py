@@ -28,7 +28,6 @@ class GentSimModel(Model):
         p_h: int = 0.5,
         b: float = 0.5,
         r_moore: int = 1,
-        sensitivity_param: int = 2,
         rent_factor: float = 0.7,
     ) -> None:
         """
@@ -44,7 +43,6 @@ class GentSimModel(Model):
         - p_h (int): Probability of moving out.
         - b (float): Parameter for the moving out probability.
         - r_moore (int): Radius for Moore neighbourhood.
-        - sensitivity_param (int): Sensitivity parameter for moving out probability.
         - rent_factor (float): Factor to calculate rent based on neighbourhood income.
         """
         super().__init__()
@@ -60,7 +58,6 @@ class GentSimModel(Model):
         self.epsilon = epsilon
         self.p_h = p_h
         self.b = b
-        self.sensitivity_param = sensitivity_param
         self.r_moore = r_moore
 
         self.income_bounds = income_bounds

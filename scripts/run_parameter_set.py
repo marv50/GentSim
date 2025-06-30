@@ -12,7 +12,6 @@ if __name__ == "__main__":
         p_h=0.4,
         b=0.5,
         r_moore=1,
-        sensitivity_param=2,
         rent_factor=0.7,
         steps=50,
         runs=10,

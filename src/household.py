@@ -220,7 +220,7 @@ class Household(Agent):
         - float: The probability of moving out, which is a function of the income percentile.
         """
         gamma = self.income_percentile(model, pos)
-        p = 1 - gamma ** (1 / model.sensitivity_param)
+        p = 1 - gamma ** (1 / 2)
         assert 0 <= p <= 1
         return p
 
@@ -235,7 +235,7 @@ class Household(Agent):
         Returns:
         - float: The probability of moving out, which is a function of the income percentile.
         """
-        p = 4 * (self.income_percentile(model, pos) - 0.5) ** model.sensitivity_param
+        p = 4 * (self.income_percentile(model, pos) - 0.5) ** 2
         assert 0 <= p <= 1
         return p
 

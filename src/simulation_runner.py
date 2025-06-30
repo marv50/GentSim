@@ -32,7 +32,6 @@ def single_run(
     p_h,
     b,
     r_moore,
-    sensitivity_param,
     steps,
     income_distribution=None,
     income_bounds=[1, 24_000, 71_200, 100_001],
@@ -51,7 +50,6 @@ def single_run(
         p_h (float): Probability of moving.
         b (float): Bias parameter.
         r_moore (int): Neighborhood radius.
-        sensitivity_param (float): Sensitivity parameter (fixed or swept).
         steps (int): Number of simulation steps.
         income_distribution (str, optional): Income distribution specification.
         income_bounds (list, optional): Income group boundaries.
@@ -71,7 +69,6 @@ def single_run(
         p_h=p_h,
         b=b,
         r_moore=r_moore,
-        sensitivity_param=sensitivity_param,
         rent_factor=rent_factor,
     )
 
@@ -105,7 +102,6 @@ def multiple_runs(
     p_h,
     b,
     r_moore,
-    sensitivity_param,
     steps,
     runs,
     income_distribution=None,
@@ -134,7 +130,6 @@ def multiple_runs(
             p_h,
             b,
             r_moore,
-            sensitivity_param,
             steps,
             income_distribution,
             income_bounds,
@@ -212,7 +207,6 @@ def parameter_sweep(
             p_h=p_h,
             b=b,
             r_moore=int(r_moore),
-            sensitivity_param=2,
             steps=steps,
             runs=runs,
             income_distribution=income_distribution,
